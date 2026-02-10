@@ -2,7 +2,7 @@ welcome to my vibecoding adventure in scraping the register of interest of refor
 
 # reform_register_scraper
 
-Minimal tooling to load councillor seed data, locate council register pages, and store register documents.
+Minimal tooling to load councillor seed data, crawl council sites for register pages, and store register documents.
 
 ## Setup
 
@@ -26,6 +26,12 @@ python -m pip install -r requirements.txt
 psql -d "$DB_NAME" -f db/schema.sql
 ```
 
+If you already created the database, add the homepage cache table:
+
+```bash
+psql -d "$DB_NAME" -c "CREATE TABLE IF NOT EXISTS council_homepages (council TEXT PRIMARY KEY, homepage_url TEXT NOT NULL, discovered_at TIMESTAMPTZ NOT NULL DEFAULT NOW());"
+```
+
 ## Usage
 
 Load councillors from the CSV file (`reform-councillors.csv` in the repo root). The CSV must include `council`, `ward`, and `name` columns.
@@ -34,7 +40,7 @@ Load councillors from the CSV file (`reform-councillors.csv` in the repo root). 
 python scripts/load_csv.py
 ```
 
-Scrape registers and store results (the scraper searches council register pages via web search, then matches councillor names in those pages):
+Scrape registers and store results (the scraper finds the council homepage via web search, crawls for register pages/PDFs, then matches councillor names in those pages):
 
 ```bash
 python scripts/scrape_registers.py

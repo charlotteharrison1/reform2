@@ -27,3 +27,9 @@ CREATE TABLE IF NOT EXISTS scraping_audit (
     details TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS council_homepages (
+    council TEXT PRIMARY KEY,
+    homepage_url TEXT NOT NULL,
+    discovered_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
