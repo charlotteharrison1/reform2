@@ -45,3 +45,13 @@ Scrape registers and store results (the scraper finds the council homepage via w
 ```bash
 python scripts/scrape_registers.py
 ```
+
+## Search UI
+
+Run a simple local web app to search results:
+
+```bash
+python app.py
+```
+
+Then open `http://127.0.0.1:5000` in your browser.

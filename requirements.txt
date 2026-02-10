@@ -2,3 +2,4 @@ requests
 beautifulsoup4
 pdfplumber
 psycopg2-binary
+flask

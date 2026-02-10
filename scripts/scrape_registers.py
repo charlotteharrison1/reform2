@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import csv
 import io
 import logging
 import os
-import re
 from typing import Iterable, Optional
 
 import pdfplumber
@@ -15,39 +13,11 @@ from bs4 import BeautifulSoup
 
 from config import get_db_connection
 from parsers.council_parsers import (
-    crawl_council_register_pages,
     find_councillor_links,
-    find_council_homepage,
-    find_pdf_links,
+    find_register_pages_for_councillor,
 )
 
 logger = logging.getLogger(__name__)
-_REQUEST_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/121.0.0.0 Safari/537.36"
-    )
-}
-
-
-def fetch_councillors() -> Iterable[tuple[int, str, str, Optional[str]]]:
-    """Yield councillor rows from the database."""
-
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id, name, council, ward
-                FROM councillors
-                ORDER BY id
-                """
-            )
-            rows = cur.fetchall()
-
-    for row in rows:
-        yield row[0], row[1], row[2], row[3]
-
 
 def log_audit(
     councillor_id: Optional[int],
@@ -64,36 +34,6 @@ def log_audit(
                 VALUES (%s, %s, %s)
                 """,
                 (councillor_id, issue_type, details),
-            )
-
-
-def get_cached_homepage(council: str) -> Optional[str]:
-    """Return cached council homepage if present."""
-
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT homepage_url FROM council_homepages WHERE council = %s",
-                (council,),
-            )
-            row = cur.fetchone()
-            return row[0] if row else None
-
-
-def cache_homepage(council: str, homepage_url: str) -> None:
-    """Upsert a council homepage URL into the cache table."""
-
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO council_homepages (council, homepage_url)
-                VALUES (%s, %s)
-                ON CONFLICT (council) DO UPDATE
-                SET homepage_url = EXCLUDED.homepage_url,
-                    discovered_at = NOW()
-                """,
-                (council, homepage_url),
             )
 
 
@@ -139,7 +79,7 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
 def fetch_register_content(register_url: str) -> tuple[str, bytes, str]:
     """Download the register URL and return (content_type, bytes, text)."""
 
-    response = requests.get(register_url, headers=_REQUEST_HEADERS, timeout=30)
+    response = requests.get(register_url, timeout=30)
     response.raise_for_status()
 
     content_type = (response.headers.get("Content-Type") or "").lower()
@@ -154,38 +94,7 @@ def _name_matches(text: str, name: str) -> bool:
 
     if not text:
         return False
-    lowered = text.lower()
-    target = name.lower().strip()
-    if target in lowered:
-        return True
-
-    # Fuzzy match: allow initials and surname order.
-    name_parts = [part for part in re.split(r"[^a-z]+", target) if part]
-    if len(name_parts) < 2:
-        return False
-
-    first = name_parts[0]
-    surname = name_parts[-1]
-    tokens = [t for t in re.split(r"[^a-z]+", lowered) if t]
-    if not tokens:
-        return False
-
-    for i, token in enumerate(tokens):
-        if token != surname:
-            continue
-        window = tokens[max(0, i - 3): i + 4]
-        if any(w == first or w.startswith(first[0]) for w in window):
-            return True
-
-    # Handle "Surname, First" formats.
-    for i, token in enumerate(tokens):
-        if token != surname:
-            continue
-        window = tokens[i + 1: i + 4]
-        if any(w == first or w.startswith(first[0]) for w in window):
-            return True
-
-    return False
+    return name.lower() in text.lower()
 
 
 def _fetch_and_extract(
@@ -223,10 +132,7 @@ def scrape_registers() -> None:
         "stored": 0,
     }
 
-    council_register_cache: dict[str, list[str]] = {}
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]] = {}
-
-    missing_rows: list[tuple[int, str, str, Optional[str]]] = []
 
     for councillor_id, name, council, ward in fetch_councillors():
         totals["processed"] += 1
@@ -237,36 +143,24 @@ def scrape_registers() -> None:
             ward or "no ward",
         )
 
-        register_pages = council_register_cache.get(council)
-        if register_pages is None:
-            logger.info("Crawling council site for %s", council)
-            cached_homepage = get_cached_homepage(council)
-            homepage = cached_homepage
-            if not homepage:
-                homepage = find_council_homepage(council)
-                if homepage:
-                    cache_homepage(council, homepage)
-
-            try:
-                register_pages = crawl_council_register_pages(council, homepage=homepage)
-            except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
-                totals["search_error"] += 1
-                log_audit(
-                    councillor_id,
-                    "search_error",
-                    f"Council crawl failed: {exc}",
-                )
-                logger.warning("Council crawl failed for %s: %s", council, exc)
-                continue
-
-            council_register_cache[council] = register_pages
-            logger.info(
-                "Found %s register page(s) for %s",
-                len(register_pages),
-                council,
+        logger.info("Searching register pages for %s", name)
+        try:
+            register_pages = find_register_pages_for_councillor(name, council, ward)
+        except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
+            totals["search_error"] += 1
+            log_audit(
+                councillor_id,
+                "search_error",
+                f"Search failed: {exc}",
             )
-            if register_pages:
-                logger.info("Register pages for %s: %s", council, register_pages)
+            logger.warning("Search failed for %s: %s", name, exc)
+            continue
+
+        logger.info(
+            "Found %s register page(s) for %s", len(register_pages), name
+        )
+        if register_pages:
+            logger.info("Register pages for %s: %s", name, register_pages)
 
         matched = False
         for register_url in register_pages:
@@ -319,9 +213,7 @@ def scrape_registers() -> None:
                 # If this is HTML, try to follow councillor-specific links.
                 if content_type.startswith("text/html"):
                     try:
-                        response = requests.get(
-                            register_url, headers=_REQUEST_HEADERS, timeout=30
-                        )
+                        response = requests.get(register_url, timeout=30)
                         response.raise_for_status()
                     except Exception as exc:  # noqa: BLE001 - best-effort only.
                         logger.debug(
@@ -378,52 +270,6 @@ def scrape_registers() -> None:
                         )
                         break
 
-                    if not matched:
-                        pdf_links = find_pdf_links(register_url, response.text)[:10]
-                        logger.info(
-                            "Found %s PDF link(s) on %s for %s",
-                            len(pdf_links),
-                            register_url,
-                            name,
-                        )
-                        for pdf_url in pdf_links:
-                            try:
-                                fetched = _fetch_and_extract(
-                                    pdf_url, register_content_cache
-                                )
-                            except Exception as exc:  # noqa: BLE001 - keep going on failures.
-                                totals["register_fetch_error"] += 1
-                                log_audit(
-                                    councillor_id,
-                                    "register_fetch_error",
-                                    f"Failed to download register PDF: {exc}",
-                                )
-                                logger.warning(
-                                    "Register PDF fetch error for %s (%s): %s",
-                                    name,
-                                    pdf_url,
-                                    exc,
-                                )
-                                continue
-
-                            if not fetched:
-                                continue
-                            pdf_content_type, pdf_bytes, pdf_text = fetched
-                            if not _name_matches(pdf_text, name):
-                                continue
-
-                            store_register(
-                                councillor_id,
-                                pdf_url,
-                                pdf_content_type,
-                                pdf_bytes,
-                                pdf_text,
-                            )
-                            totals["stored"] += 1
-                            matched = True
-                            logger.info("Stored register for %s (%s)", name, pdf_url)
-                            break
-
                     if matched:
                         break
                 continue
@@ -442,22 +288,12 @@ def scrape_registers() -> None:
 
         if not matched:
             totals["missing_register_url"] += 1
-            missing_rows.append((councillor_id, name, council, ward))
             log_audit(
                 councillor_id,
                 "missing_register_url",
                 "No register of interests page contained the councillor name.",
             )
             logger.info("No register page matched for %s", name)
-
-    if missing_rows:
-        missing_path = "missing_councillors.csv"
-        with open(missing_path, "w", newline="", encoding="utf-8") as handle:
-            writer = csv.writer(handle)
-            writer.writerow(["id", "name", "council", "ward"])
-            for row in missing_rows:
-                writer.writerow(row)
-        logger.info("Wrote missing councillors report to %s", missing_path)
 
     logger.info(
         "Finished. processed=%s stored=%s missing_register_url=%s "

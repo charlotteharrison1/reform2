@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register Search</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f3ec;
+        --panel: #ffffff;
+        --ink: #1b1b1b;
+        --muted: #5b5b5b;
+        --accent: #2f6b57;
+        --border: #e0d8cc;
+      }
+      body {
+        margin: 0;
+        font-family: "Iowan Old Style", "Georgia", serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      header {
+        padding: 2.5rem 1.5rem 1rem;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 2rem;
+        letter-spacing: 0.02em;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .search {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem 1.5rem;
+      }
+      form {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      input[type="text"] {
+        flex: 1 1 340px;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+      button {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .results {
+        max-width: 960px;
+        margin: 1.5rem auto 3rem;
+        padding: 0 1.5rem;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+      .snippet {
+        margin-top: 0.75rem;
+        color: #2d2d2d;
+        line-height: 1.4;
+      }
+      .empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Register Search</h1>
+      <p>Search councillors, councils, wards, or register text.</p>
+    </header>
+
+    <section class="search">
+      <form method="get" action="/">
+        <input type="text" name="q" placeholder="Search name, council, ward, or keyword" value="{{ query }}" />
+        <button type="submit">Search</button>
+      </form>
+    </section>
+
+    <section class="results">
+      {% if query and results %}
+        {% for row in results %}
+          <div class="card">
+            <strong>{{ row.name }}</strong>
+            <div class="meta">
+              <span>{{ row.council }}</span>
+              {% if row.ward %}
+                <span>Ward: {{ row.ward }}</span>
+              {% endif %}
+              <span>Fetched: {{ row.fetched_at }}</span>
+            </div>
+            <div class="snippet">{{ row.snippet }}</div>
+            <div class="meta">
+              <a href="{{ row.register_url }}" target="_blank" rel="noreferrer">Open register</a>
+              <span>{{ row.content_type }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% elif query %}
+        <div class="empty">No results found for "{{ query }}".</div>
+      {% else %}
+        <div class="empty">Enter a search term to begin.</div>
+      {% endif %}
+    </section>
+  </body>
+</html>
