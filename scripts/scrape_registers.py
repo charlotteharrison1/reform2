@@ -19,6 +19,25 @@ from parsers.council_parsers import (
 
 logger = logging.getLogger(__name__)
 
+
+def fetch_councillors() -> Iterable[tuple[int, str, str, Optional[str]]]:
+    """Yield councillor rows from the database."""
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, name, council, ward
+                FROM councillors
+                ORDER BY id
+                """
+            )
+            rows = cur.fetchall()
+
+    for row in rows:
+        yield row[0], row[1], row[2], row[3]
+
+
 def log_audit(
     councillor_id: Optional[int],
     issue_type: str,

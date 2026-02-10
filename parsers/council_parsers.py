@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 
 
 _REGISTER_PATTERNS = [
+    r"register of interest",
     r"register of interests",
     r"register of member(?:'|’)s? interests",
     r"members?['’] interests",
@@ -29,8 +30,6 @@ _DEFAULT_HEADERS = {
         "Chrome/121.0.0.0 Safari/537.36"
     )
 }
-
-_DEFAULT_TIMEOUT = 20
 
 
 def _looks_like_register_link(text: str, href: str) -> bool:
@@ -125,17 +124,6 @@ def _url_matches_council(url: str, council: str) -> bool:
     return any(token in host or token in path for token in tokens)
 
 
-def _fallback_council_domains(council: str) -> list[str]:
-    slug = re.sub(r"[^a-z0-9]", "", council.lower())
-    if not slug:
-        return []
-    return [
-        f"https://www.{slug}.gov.uk/",
-        f"https://{slug}.gov.uk/",
-        f"https://{slug}.org.uk/",
-    ]
-
-
 def find_council_homepage(council: str) -> Optional[str]:
     """Find a likely council homepage using web search."""
 
@@ -150,13 +138,6 @@ def find_council_homepage(council: str) -> Optional[str]:
                 continue
             if _url_matches_council(result_url, council):
                 return result_url
-    for candidate in _fallback_council_domains(council):
-        try:
-            response = requests.get(candidate, headers=_DEFAULT_HEADERS, timeout=_DEFAULT_TIMEOUT)
-            response.raise_for_status()
-        except Exception:
-            continue
-        return candidate
     return None
 
 
@@ -171,10 +152,6 @@ _CRAWL_KEYWORDS = (
     "committee",
     "governance",
     "declaration",
-    "meeting",
-    "minutes",
-    "transparency",
-    "publication",
 )
 
 
@@ -205,7 +182,6 @@ def crawl_council_register_pages(
         "/a-z",
         "/az",
         "/documents",
-        "/downloads",
         "/document-library",
         "/democracy",
         "/moderngov",
@@ -213,14 +189,6 @@ def crawl_council_register_pages(
         "/committees",
         "/your-council",
         "/council",
-        "/councillors",
-        "/members",
-        "/meetings",
-        "/transparency",
-        "/publication-scheme",
-        "/information-rights",
-        "/your-council/councillors",
-        "/your-council/your-councillors",
     ]
     seeds = [homepage]
     for path in seed_paths:
@@ -238,7 +206,7 @@ def crawl_council_register_pages(
             seen.add(url)
 
             try:
-                response = requests.get(url, headers=_DEFAULT_HEADERS, timeout=_DEFAULT_TIMEOUT)
+                response = requests.get(url, headers=_DEFAULT_HEADERS, timeout=20)
                 response.raise_for_status()
             except Exception:
                 continue
@@ -258,8 +226,8 @@ def crawl_council_register_pages(
             soup = BeautifulSoup(html, "html.parser")
             links = list(soup.find_all("a", href=True))
 
-            # From the homepage and first level, allow a broader set of internal links.
-            if depth <= 1:
+            # From the homepage, allow a broader set of internal links.
+            if depth == 0:
                 extra_added = 0
                 for link in links:
                     href = (link.get("href") or "").strip()
@@ -272,7 +240,7 @@ def crawl_council_register_pages(
                         continue
                     queue.append((next_url, depth + 1))
                     extra_added += 1
-                    if extra_added >= 40:
+                    if extra_added >= 20:
                         break
 
             for link in links:
@@ -295,12 +263,7 @@ def crawl_council_register_pages(
 
     found = crawl(max_pages, max_depth)
     if not found and max_depth < 3:
-        logger.info(
-            "Expanding crawl for %s (depth=%s, pages=%s)",
-            council,
-            max_depth + 1,
-            max_pages * 2,
-        )
+        logger.info("Expanding crawl for %s (depth=%s, pages=%s)", council, max_depth + 1, max_pages * 2)
         found = crawl(max_pages * 2, max_depth + 1)
 
     return found
@@ -338,7 +301,7 @@ def _search_bing(query: str, *, max_results: int) -> list[str]:
         rss_url,
         params={"q": query, "format": "rss"},
         headers=_DEFAULT_HEADERS,
-        timeout=_DEFAULT_TIMEOUT,
+        timeout=20,
     )
     response.raise_for_status()
 
@@ -362,7 +325,7 @@ def _search_bing(query: str, *, max_results: int) -> list[str]:
         rss_url,
         params={"q": query},
         headers=_DEFAULT_HEADERS,
-        timeout=_DEFAULT_TIMEOUT,
+        timeout=20,
     )
     html_response.raise_for_status()
 
@@ -394,7 +357,7 @@ def _search_brave(query: str, *, max_results: int) -> list[str]:
         search_url,
         params={"q": query},
         headers=_DEFAULT_HEADERS,
-        timeout=_DEFAULT_TIMEOUT,
+        timeout=20,
     )
     response.raise_for_status()
 
