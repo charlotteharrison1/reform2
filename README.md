@@ -1,6 +1,6 @@
 # reform_register_scraper
 
-Minimal tooling to load councillor seed data, locate register links, and store register documents.
+Minimal tooling to load councillor seed data, locate council register pages, and store register documents.
 
 ## Setup
 
@@ -26,13 +26,13 @@ psql -d "$DB_NAME" -f db/schema.sql
 
 ## Usage
 
-Load councillors from the CSV file:
+Load councillors from the CSV file (`reform-councillors.csv` in the repo root). The CSV must include `council`, `ward`, and `name` columns.
 
 ```bash
 python scripts/load_csv.py
 ```
 
-Scrape registers and store results:
+Scrape registers and store results (the scraper searches council register pages via web search, then matches councillor names in those pages):
 
 ```bash
 python scripts/scrape_registers.py

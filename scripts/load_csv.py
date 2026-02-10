@@ -8,7 +8,7 @@ import psycopg2
 from config import get_db_connection
 
 
-CSV_PATH = Path("seed_data/reform_councillors.csv")
+CSV_PATH = Path("reform-councillors.csv")
 
 
 def load_councillors() -> int:
@@ -26,19 +26,19 @@ def load_councillors() -> int:
                 for row in reader:
                     name = (row.get("name") or "").strip()
                     council = (row.get("council") or "").strip()
-                    profile_url = (row.get("profile_url") or "").strip() or None
-
+                    ward = (row.get("ward") or "").strip() or None
+                    next_election = (row.get("next election") or "").strip() or None
                     if not name or not council:
                         # Skip incomplete rows to avoid partial data inserts.
                         continue
 
                     cur.execute(
                         """
-                        INSERT INTO councillors (name, council, profile_url)
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (profile_url) DO NOTHING
+                        INSERT INTO councillors (name, council, ward, next_election)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT (name, council, ward) DO NOTHING
                         """,
-                        (name, council, profile_url),
+                        (name, council, ward, next_election),
                     )
                     if cur.rowcount == 1:
                         inserted += 1

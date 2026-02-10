@@ -4,8 +4,10 @@ CREATE TABLE IF NOT EXISTS councillors (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     council TEXT NOT NULL,
-    profile_url TEXT UNIQUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    ward TEXT,
+    next_election DATE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (name, council, ward)
 );
 
 CREATE TABLE IF NOT EXISTS councillor_registers (
@@ -21,7 +23,6 @@ CREATE TABLE IF NOT EXISTS councillor_registers (
 CREATE TABLE IF NOT EXISTS scraping_audit (
     id SERIAL PRIMARY KEY,
     councillor_id INTEGER REFERENCES councillors(id) ON DELETE SET NULL,
-    profile_url TEXT,
     issue_type TEXT NOT NULL,
     details TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
