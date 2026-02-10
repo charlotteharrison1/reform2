@@ -1,3 +1,5 @@
+welcome to my vibecoding adventure in scraping the register of interest of reform councillors. check back here later for instructions on how to use.
+
 # reform_register_scraper
 
 Minimal tooling to load councillor seed data, locate council register pages, and store register documents.
