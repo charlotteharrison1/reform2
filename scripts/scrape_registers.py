@@ -36,6 +36,8 @@ _REQUEST_HEADERS = {
     )
 }
 _REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "0"))
+USE_HOMEPAGE_CRAWL = os.getenv("USE_HOMEPAGE_CRAWL", "0") == "1"
+USE_FALLBACK_SEARCH = os.getenv("USE_FALLBACK_SEARCH", "0") == "1"
 
 
 def fetch_councillors() -> Iterable[tuple[int, str, str, Optional[str]]]:
@@ -203,18 +205,11 @@ def _looks_like_register_url(url: str) -> bool:
     )
 
 
-def _looks_like_register_url(url: str) -> bool:
-    lowered = url.lower()
-    return any(
-        hint in lowered
-        for hint in (
-            "mgdeclarationsubmission",
-            "mgrofi",
-            "registerofinterests",
-            "register-of-interests",
-            "register-of-members-interests",
-        )
-    )
+def _democracy_index_url(council: str) -> Optional[str]:
+    slug = re.sub(r"[^a-z0-9]", "", council.lower())
+    if not slug:
+        return None
+    return f"https://democracy.{slug}.gov.uk/mgMemberIndex.aspx?bcr=1"
 
 
 def _fetch_and_extract(
@@ -305,6 +300,8 @@ def _process_councillor(
     index_lock: Lock,
     flow_counts: dict[str, int],
     flow_lock: Lock,
+    democracy_ok: set[str],
+    democracy_lock: Lock,
 ) -> None:
     if councillor_has_match(councillor_id):
         with totals_lock:
@@ -315,22 +312,15 @@ def _process_councillor(
     with totals_lock:
         totals["processed"] += 1
 
-    homepage = get_cached_homepage(council)
-    if not homepage:
-        homepage = find_council_homepage(council)
+    homepage = None
+    if USE_HOMEPAGE_CRAWL:
+        homepage = get_cached_homepage(council)
+        if not homepage:
+            homepage = find_council_homepage(council)
+            if homepage:
+                cache_homepage(council, homepage)
         if homepage:
-            cache_homepage(council, homepage)
-    if homepage:
-        logger.info("Council homepage for %s: %s", council, homepage)
-
-    homepage_html = ""
-    if homepage:
-        try:
-            response = requests.get(homepage, headers=_REQUEST_HEADERS, timeout=30)
-            response.raise_for_status()
-            homepage_html = response.text
-        except Exception as exc:  # noqa: BLE001 - best-effort only.
-            logger.debug("Failed to fetch homepage HTML for %s: %s", council, exc)
+            logger.info("Council homepage for %s: %s", council, homepage)
 
     logger.info(
         "Processing %s (%s, %s)",
@@ -342,17 +332,35 @@ def _process_councillor(
     register_pages: list[str] = []
     councillor_page_url = ""
     flow_path = "fallback_search"
+    used_democracy_index = False
 
     index_pages: list[str] = []
-    if homepage:
-        with index_lock:
-            index_pages = index_page_cache.get(council, [])
-        if not index_pages:
+    with index_lock:
+        index_pages = index_page_cache.get(council, [])
+    if not index_pages:
+        democracy_url = _democracy_index_url(council)
+        if democracy_url:
+            try:
+                response = requests.get(
+                    democracy_url, headers=_REQUEST_HEADERS, timeout=30
+                )
+                if response.ok:
+                    index_pages = [democracy_url]
+                    logger.info(
+                        "Democracy index for %s: %s", council, democracy_url
+                    )
+                    with democracy_lock:
+                        democracy_ok.add(council)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("Democracy index fetch failed for %s: %s", council, exc)
+        if not index_pages and homepage and USE_HOMEPAGE_CRAWL:
             index_pages = find_councillor_index_pages(council, homepage)
-            with index_lock:
-                index_page_cache[council] = index_pages
+        with index_lock:
+            index_page_cache[council] = index_pages
 
     for index_url in index_pages:
+        if "democracy." in index_url:
+            used_democracy_index = True
         try:
             response = requests.get(index_url, headers=_REQUEST_HEADERS, timeout=30)
             response.raise_for_status()
@@ -370,14 +378,16 @@ def _process_councillor(
                 councillor_page_url, headers=_REQUEST_HEADERS, timeout=30
             )
             response.raise_for_status()
-            register_pages.extend(find_register_links(councillor_page_url, response.text))
+            register_pages.extend(
+                find_register_links(councillor_page_url, response.text)
+            )
             register_pages.extend(find_pdf_links(councillor_page_url, response.text))
             if register_pages:
-                flow_path = "councillor_page"
+                flow_path = "democracy_index" if used_democracy_index else "councillor_page"
         except Exception:
             pass
 
-    if not register_pages:
+    if not register_pages and USE_FALLBACK_SEARCH:
         try:
             register_pages = find_register_pages_for_councillor(name, council, ward)
         except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
@@ -393,7 +403,7 @@ def _process_councillor(
             logger.warning("Search failed for %s: %s", name, exc)
             return
 
-    if not register_pages:
+    if not register_pages and USE_HOMEPAGE_CRAWL:
         try:
             register_pages = crawl_council_register_pages(council, homepage=homepage)
         except Exception as exc:  # noqa: BLE001 - best-effort fallback.
@@ -551,6 +561,8 @@ def scrape_registers() -> None:
     index_lock = Lock()
     flow_counts: dict[str, int] = {}
     flow_lock = Lock()
+    democracy_ok: set[str] = set()
+    democracy_lock = Lock()
 
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]] = {}
     cache_lock = Lock()
@@ -580,6 +592,8 @@ def scrape_registers() -> None:
                     index_lock,
                     flow_counts,
                     flow_lock,
+                    democracy_ok,
+                    democracy_lock,
                 )
             )
         for future in as_completed(futures):
@@ -620,6 +634,27 @@ def scrape_registers() -> None:
         logger.info("Failure counts by reason: %s", counts)
 
     logger.info("Flow counts: %s", flow_counts)
+
+    missing_councils_path = "missing-councils.csv"
+    if democracy_ok and os.path.exists(missing_councils_path):
+        with open(missing_councils_path, newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            existing = [
+                (row.get("council") or "").strip()
+                for row in reader
+                if (row.get("council") or "").strip()
+            ]
+        kept = [c for c in existing if c not in democracy_ok]
+        with open(missing_councils_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["council"])
+            for council in kept:
+                writer.writerow([council])
+        logger.info(
+            "Updated %s (removed %s councils with democracy indexes)",
+            missing_councils_path,
+            len(existing) - len(kept),
+        )
 
     logger.info(
         "Finished. processed=%s stored=%s missing_register_url=%s "
