@@ -17,9 +17,12 @@ from bs4 import BeautifulSoup
 
 from config import get_db_connection
 from parsers.council_parsers import (
+    crawl_council_register_pages,
+    find_councillor_index_pages,
     find_councillor_links,
     find_council_homepage,
     find_pdf_links,
+    find_register_links,
     find_register_pages_for_councillor,
     find_ward_link,
 )
@@ -183,6 +186,34 @@ def _looks_like_register_text(text: str) -> bool:
     return any(phrase in lowered for phrase in phrases)
 
 
+def _looks_like_register_url(url: str) -> bool:
+    lowered = url.lower()
+    return any(
+        hint in lowered
+        for hint in (
+            "mgdeclarationsubmission",
+            "mgrofi",
+            "registerofinterests",
+            "register-of-interests",
+            "register-of-members-interests",
+        )
+    )
+
+
+def _looks_like_register_url(url: str) -> bool:
+    lowered = url.lower()
+    return any(
+        hint in lowered
+        for hint in (
+            "mgdeclarationsubmission",
+            "mgrofi",
+            "registerofinterests",
+            "register-of-interests",
+            "register-of-members-interests",
+        )
+    )
+
+
 def _fetch_and_extract(
     register_url: str,
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]],
@@ -267,6 +298,12 @@ def _process_councillor(
     pdf_lock: Lock,
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]],
     cache_lock: Lock,
+    failure_rows: list[tuple[str, str, str]],
+    failure_lock: Lock,
+    index_page_cache: dict[str, list[str]],
+    index_lock: Lock,
+    flow_counts: dict[str, int],
+    flow_lock: Lock,
 ) -> None:
     if councillor_has_match(councillor_id):
         with totals_lock:
@@ -282,6 +319,8 @@ def _process_councillor(
         homepage = find_council_homepage(council)
         if homepage:
             cache_homepage(council, homepage)
+    if homepage:
+        logger.info("Council homepage for %s: %s", council, homepage)
 
     homepage_html = ""
     if homepage:
@@ -305,18 +344,65 @@ def _process_councillor(
         ward or "no ward",
     )
 
-    try:
-        register_pages = find_register_pages_for_councillor(name, council, ward)
-    except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
-        with totals_lock:
-            totals["search_error"] += 1
-        log_audit(
-            councillor_id,
-            "search_error",
-            f"Search failed: {exc}",
-        )
-        logger.warning("Search failed for %s: %s", name, exc)
-        return
+    register_pages: list[str] = []
+    councillor_page_url = ""
+    flow_path = "fallback_search"
+
+    index_pages: list[str] = []
+    if homepage:
+        with index_lock:
+            index_pages = index_page_cache.get(council, [])
+        if not index_pages:
+            index_pages = find_councillor_index_pages(council, homepage)
+            with index_lock:
+                index_page_cache[council] = index_pages
+
+    for index_url in index_pages:
+        try:
+            response = requests.get(index_url, headers=_REQUEST_HEADERS, timeout=30)
+            response.raise_for_status()
+        except Exception:
+            continue
+
+        links = find_councillor_links(index_url, response.text, name)
+        if links:
+            councillor_page_url = links[0]
+            break
+
+    if councillor_page_url:
+        try:
+            response = requests.get(
+                councillor_page_url, headers=_REQUEST_HEADERS, timeout=30
+            )
+            response.raise_for_status()
+            register_pages.extend(find_register_links(councillor_page_url, response.text))
+            register_pages.extend(find_pdf_links(councillor_page_url, response.text))
+            if register_pages:
+                flow_path = "councillor_page"
+        except Exception:
+            pass
+
+    if not register_pages:
+        try:
+            register_pages = find_register_pages_for_councillor(name, council, ward)
+        except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
+            with totals_lock:
+                totals["search_error"] += 1
+            with failure_lock:
+                failure_rows.append((name, council, "search_error"))
+            log_audit(
+                councillor_id,
+                "search_error",
+                f"Search failed: {exc}",
+            )
+            logger.warning("Search failed for %s: %s", name, exc)
+            return
+
+    if not register_pages:
+        try:
+            register_pages = crawl_council_register_pages(council, homepage=homepage)
+        except Exception as exc:  # noqa: BLE001 - best-effort fallback.
+            logger.debug("Council crawl fallback failed for %s: %s", council, exc)
 
     matched = False
     councillor_page_url = ""
@@ -386,7 +472,10 @@ def _process_councillor(
                     link_content_type, link_pdf_bytes, link_text = candidate_fetched
                     if not _name_matches(link_text, name):
                         continue
-                    if not _looks_like_register_text(link_text):
+                    if not (
+                        _looks_like_register_text(link_text)
+                        or _looks_like_register_url(candidate_url)
+                    ):
                         continue
 
                     store_register(
@@ -430,7 +519,10 @@ def _process_councillor(
                         pdf_content_type, pdf_bytes, pdf_text = pdf_fetched
                         if not _name_matches(pdf_text, name):
                             continue
-                        if not _looks_like_register_text(pdf_text):
+                        if not (
+                            _looks_like_register_text(pdf_text)
+                            or _looks_like_register_url(pdf_url)
+                        ):
                             continue
 
                         store_register(
@@ -450,7 +542,9 @@ def _process_councillor(
                     break
             continue
 
-        if _looks_like_register_text(extracted_text):
+        if _looks_like_register_text(extracted_text) or _looks_like_register_url(
+            register_url
+        ):
             store_register(
                 councillor_id,
                 register_url,
@@ -469,14 +563,18 @@ def _process_councillor(
             totals["missing_register_url"] += 1
         with missing_lock:
             missing_rows.append((councillor_id, name, council, ward))
-        log_audit(
-            councillor_id,
-            "missing_register_url",
-            "No register of interests page contained the councillor name.",
-        )
+            log_audit(
+                councillor_id,
+                "missing_register_url",
+                "No register of interests page contained the councillor name.",
+            )
+        with failure_lock:
+            failure_rows.append((name, council, "missing_register_url"))
 
     with link_lock:
         link_rows.append((name, ward, ward_url, councillor_page_url))
+    with flow_lock:
+        flow_counts[flow_path] = flow_counts.get(flow_path, 0) + 1
 
 
 def scrape_registers() -> None:
@@ -496,6 +594,12 @@ def scrape_registers() -> None:
     link_lock = Lock()
     pdf_rows: list[tuple[str, str, str]] = []
     pdf_lock = Lock()
+    failure_rows: list[tuple[str, str, str]] = []
+    failure_lock = Lock()
+    index_page_cache: dict[str, list[str]] = {}
+    index_lock = Lock()
+    flow_counts: dict[str, int] = {}
+    flow_lock = Lock()
 
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]] = {}
     cache_lock = Lock()
@@ -521,6 +625,12 @@ def scrape_registers() -> None:
                     pdf_lock,
                     register_content_cache,
                     cache_lock,
+                    failure_rows,
+                    failure_lock,
+                    index_page_cache,
+                    index_lock,
+                    flow_counts,
+                    flow_lock,
                 )
             )
         for future in as_completed(futures):
@@ -552,6 +662,24 @@ def scrape_registers() -> None:
             for row in pdf_rows:
                 writer.writerow(row)
         logger.info("Wrote manual PDF register list to %s", pdf_path)
+        logger.info("Manual PDF register entries: %s", len(pdf_rows))
+    else:
+        logger.info("Manual PDF register entries: 0")
+
+    if failure_rows:
+        failure_path = "failed_councillors.csv"
+        with open(failure_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["name", "council", "reason"])
+            for row in failure_rows:
+                writer.writerow(row)
+        logger.info("Wrote failure summary to %s", failure_path)
+        counts: dict[str, int] = {}
+        for _name, _council, reason in failure_rows:
+            counts[reason] = counts.get(reason, 0) + 1
+        logger.info("Failure counts by reason: %s", counts)
+
+    logger.info("Flow counts: %s", flow_counts)
 
     logger.info(
         "Finished. processed=%s stored=%s missing_register_url=%s "

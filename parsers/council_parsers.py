@@ -21,6 +21,14 @@ _REGISTER_PATTERNS = [
     r"disclosable pecuniary interests",
 ]
 
+_REGISTER_URL_HINTS = (
+    "mgdeclarationsubmission",
+    "mgrofi",
+    "registerofinterests",
+    "register-of-interests",
+    "register-of-members-interests",
+)
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_HEADERS = {
@@ -36,6 +44,9 @@ def _looks_like_register_link(text: str, href: str) -> bool:
     """Return True when link text or URL suggests a register page."""
 
     haystack = f"{text} {href}".strip().lower()
+    for hint in _REGISTER_URL_HINTS:
+        if hint in haystack:
+            return True
     for pattern in _REGISTER_PATTERNS:
         if re.search(pattern, haystack, flags=re.IGNORECASE):
             return True
@@ -75,6 +86,12 @@ def find_pdf_links(base_url: str, html: str) -> list[str]:
     """Public wrapper to collect PDF links from a page."""
 
     return _collect_pdf_links(base_url, html)
+
+
+def find_register_links(base_url: str, html: str) -> list[str]:
+    """Public wrapper to collect register-like links from a page."""
+
+    return _collect_register_links(base_url, html)
 
 
 def _normalize_name(value: str) -> str:
@@ -145,6 +162,18 @@ def _url_matches_council(url: str, council: str) -> bool:
     return any(token in host or token in path for token in tokens)
 
 
+def _fallback_council_domains(council: str) -> list[str]:
+    slug = re.sub(r"[^a-z0-9]", "", council.lower())
+    if not slug:
+        return []
+    return [
+        f"https://www.{slug}.gov.uk/",
+        f"https://{slug}.gov.uk/",
+        f"https://democracy.{slug}.gov.uk/",
+        f"https://{slug}.org.uk/",
+    ]
+
+
 def find_council_homepage(council: str) -> Optional[str]:
     """Find a likely council homepage using web search."""
 
@@ -153,6 +182,19 @@ def find_council_homepage(council: str) -> Optional[str]:
         f"{council} council website",
         f"{council} local authority",
     ]
+    # Try predictable gov.uk-style domains first.
+    for candidate in _fallback_council_domains(council):
+        if "moderngov" in candidate:
+            continue
+        try:
+            response = requests.get(
+                candidate, headers=_DEFAULT_HEADERS, timeout=_DEFAULT_TIMEOUT
+            )
+            response.raise_for_status()
+        except Exception:
+            continue
+        return candidate
+
     for query in queries:
         for result_url in search_web(query, max_results=8):
             if not result_url:
@@ -160,6 +202,83 @@ def find_council_homepage(council: str) -> Optional[str]:
             if _url_matches_council(result_url, council):
                 return result_url
     return None
+
+
+_COUNCILLOR_INDEX_KEYWORDS = (
+    "councillor",
+    "councillors",
+    "members",
+    "member",
+    "mgmemberindex",
+    "mguserinfo",
+    "mgmemberindex.aspx",
+    "mguserinfo.aspx",
+)
+
+
+def find_councillor_index_pages(
+    council: str, homepage: str, *, max_pages: int = 40, max_depth: int = 2
+) -> list[str]:
+    """Crawl from the homepage to discover councillor index pages."""
+
+    parsed_home = urlparse(homepage)
+    base_host = parsed_home.hostname or ""
+    base_domain = (
+        ".".join(base_host.split(".")[-3:]) if base_host.count(".") >= 2 else base_host
+    )
+
+    def is_internal(url: str) -> bool:
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+        return host.endswith(base_domain)
+
+    queue = deque([(homepage, 0)])
+    seen: set[str] = set()
+    found: list[str] = []
+
+    while queue and len(seen) < max_pages:
+        url, depth = queue.popleft()
+        if url in seen:
+            continue
+        seen.add(url)
+
+        try:
+            response = requests.get(url, headers=_DEFAULT_HEADERS, timeout=_DEFAULT_TIMEOUT)
+            response.raise_for_status()
+        except Exception:
+            continue
+
+        html = response.text
+        soup = BeautifulSoup(html, "html.parser")
+
+        if any(keyword in url.lower() for keyword in _COUNCILLOR_INDEX_KEYWORDS):
+            if url not in found:
+                found.append(url)
+
+        for link in soup.find_all("a", href=True):
+            href = (link.get("href") or "").strip()
+            if not href:
+                continue
+            text = (link.get_text() or "").strip().lower()
+            href_lower = href.lower()
+            if any(
+                keyword in text or keyword in href_lower
+                for keyword in _COUNCILLOR_INDEX_KEYWORDS
+            ):
+                next_url = urljoin(url, href)
+                if is_internal(next_url) and next_url not in found:
+                    found.append(next_url)
+
+            if depth >= max_depth:
+                continue
+            next_url = urljoin(url, href)
+            if not is_internal(next_url):
+                continue
+            if next_url in seen:
+                continue
+            queue.append((next_url, depth + 1))
+
+    return found
 
 
 _CRAWL_KEYWORDS = (
