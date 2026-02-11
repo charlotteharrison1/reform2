@@ -34,8 +34,8 @@ def _normalize_whitespace(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip()
 
 
-def extract_reform_councillors(index_url: str) -> list[tuple[str, str]]:
-    """Return list of (name, councillor_url) for Reform UK entries."""
+def extract_reform_councillors(index_url: str) -> list[tuple[str, str, str]]:
+    """Return list of (name, ward, councillor_url) for Reform UK entries."""
     if REQUEST_DELAY:
         time.sleep(REQUEST_DELAY)
     resp = requests.get(index_url, headers=HEADERS, timeout=30)
@@ -43,7 +43,7 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str]]:
     html = resp.text
 
     soup = BeautifulSoup(html, "html.parser")
-    results: list[tuple[str, str]] = []
+    results: list[tuple[str, str, str]] = []
 
     for li in soup.find_all("li"):
         text = _normalize_whitespace(li.get_text(" ", strip=True))
@@ -58,8 +58,18 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str]]:
         name = _normalize_whitespace(a.get_text(" ", strip=True))
         # Some entries include "Councillor X" in the anchor text.
         name = re.sub(r"^Councillor\\s+", "", name, flags=re.IGNORECASE)
+        ward = ""
+        for p in li.find_all("p"):
+            p_text = _normalize_whitespace(p.get_text(" ", strip=True))
+            if not p_text:
+                continue
+            # Skip the party line, keep the ward line.
+            if "reform uk" in p_text.lower():
+                continue
+            ward = p_text
+            break
         councillor_url = urljoin(index_url, href)
-        results.append((name, councillor_url))
+        results.append((name, ward, councillor_url))
 
     return results
 
@@ -75,20 +85,22 @@ def main() -> None:
             if council and index_url:
                 rows.append((council, council_url, index_url))
 
-    results: list[tuple[str, str, str]] = []
-    for council, council_url, index_url in rows:
+    results: list[tuple[str, str, str, str]] = []
+    total = len(rows)
+    for idx, (council, council_url, index_url) in enumerate(rows, start=1):
         try:
-            _debug(f"Fetching {index_url}")
+            print(f"[{idx}/{total}] Fetching {council}: {index_url}")
             matches = extract_reform_councillors(index_url)
         except Exception as exc:
-            _debug(f"Failed {index_url}: {exc}")
+            print(f"[{idx}/{total}] Failed {council}: {exc}")
             continue
-        for name, councillor_url in matches:
-            results.append((council, name, councillor_url))
+        print(f"[{idx}/{total}] Found {len(matches)} Reform UK councillor(s) for {council}")
+        for name, ward, councillor_url in matches:
+            results.append((council, name, ward, councillor_url))
 
     with open(OUTPUT, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["council", "councillor", "councillor_url"])
+        writer.writerow(["council", "councillor", "ward", "councillor_url"])
         writer.writerows(results)
 
     print(f"Wrote {len(results)} rows to {OUTPUT}")
