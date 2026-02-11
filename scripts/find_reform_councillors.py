@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 INPUT = os.getenv("COUNCILLOR_INDEX_CSV", "council_councillor_pages.csv")
 OUTPUT = os.getenv("REFORM_COUNCILLORS_CSV", "reform_councillor_pages.csv")
+FAILURES = os.getenv("REFORM_COUNCILLOR_FAILURES_CSV", "reform_councillor_failures.csv")
 REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "0"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
@@ -38,8 +39,12 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str, str]]:
     """Return list of (name, ward, councillor_url) for Reform UK entries."""
     if REQUEST_DELAY:
         time.sleep(REQUEST_DELAY)
-    resp = requests.get(index_url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
+    try:
+        resp = requests.get(index_url, headers=HEADERS, timeout=30)
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Request failed: {exc}") from exc
+    if not resp.ok:
+        raise RuntimeError(f"Non-200 response: {resp.status_code}")
     html = resp.text
 
     soup = BeautifulSoup(html, "html.parser")
@@ -86,6 +91,7 @@ def main() -> None:
                 rows.append((council, council_url, index_url))
 
     results: list[tuple[str, str, str, str]] = []
+    failures: list[tuple[str, str, str]] = []
     total = len(rows)
     for idx, (council, council_url, index_url) in enumerate(rows, start=1):
         try:
@@ -93,6 +99,7 @@ def main() -> None:
             matches = extract_reform_councillors(index_url)
         except Exception as exc:
             print(f"[{idx}/{total}] Failed {council}: {exc}")
+            failures.append((council, index_url, str(exc)))
             continue
         print(f"[{idx}/{total}] Found {len(matches)} Reform UK councillor(s) for {council}")
         for name, ward, councillor_url in matches:
@@ -103,7 +110,13 @@ def main() -> None:
         writer.writerow(["council", "councillor", "ward", "councillor_url"])
         writer.writerows(results)
 
+    with open(FAILURES, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["council", "councillor_index_url", "error"])
+        writer.writerows(failures)
+
     print(f"Wrote {len(results)} rows to {OUTPUT}")
+    print(f"Wrote {len(failures)} rows to {FAILURES}")
 
 
 if __name__ == "__main__":
