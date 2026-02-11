@@ -7,6 +7,7 @@ import io
 import logging
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from typing import Iterable, Optional
@@ -35,6 +36,7 @@ _REQUEST_HEADERS = {
         "Chrome/121.0.0.0 Safari/537.36"
     )
 }
+_REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "0"))
 
 
 def fetch_councillors() -> Iterable[tuple[int, str, str, Optional[str]]]:
@@ -119,6 +121,8 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
 def fetch_register_content(register_url: str) -> tuple[str, bytes, str]:
     """Download the register URL and return (content_type, bytes, text)."""
 
+    if _REQUEST_DELAY:
+        time.sleep(_REQUEST_DELAY)
     response = requests.get(register_url, headers=_REQUEST_HEADERS, timeout=30)
     response.raise_for_status()
 
@@ -229,8 +233,8 @@ def _fetch_and_extract(
     content_type, raw_bytes, raw_text = fetch_register_content(register_url)
     is_pdf = "pdf" in content_type or register_url.lower().endswith(".pdf")
     if is_pdf:
-        extracted_text = extract_pdf_text(raw_bytes)
-        pdf_bytes = raw_bytes
+        extracted_text = ""
+        pdf_bytes = None
     else:
         soup = BeautifulSoup(raw_text, "html.parser")
         extracted_text = soup.get_text(" ", strip=True)
@@ -443,9 +447,11 @@ def _process_councillor(
                     )
                     continue
 
-                candidate_links = find_councillor_links(
-                    register_url, response.text, name
-                )[:5]
+                    candidate_links = find_councillor_links(
+                        register_url, response.text, name
+                    )[:5]
+                    if _REQUEST_DELAY:
+                        time.sleep(_REQUEST_DELAY)
                 for candidate_url in candidate_links:
                     try:
                         candidate_fetched = _fetch_and_extract(
@@ -494,49 +500,8 @@ def _process_councillor(
                 if not matched:
                     pdf_links = find_pdf_links(register_url, response.text)[:10]
                     for pdf_url in pdf_links:
-                        try:
-                            pdf_fetched = _fetch_and_extract(
-                                pdf_url, register_content_cache, cache_lock
-                            )
-                        except Exception as exc:  # noqa: BLE001
-                            with totals_lock:
-                                totals["register_fetch_error"] += 1
-                            log_audit(
-                                councillor_id,
-                                "register_fetch_error",
-                                f"Failed to download register PDF: {exc}",
-                            )
-                            logger.warning(
-                                "Register PDF fetch error for %s (%s): %s",
-                                name,
-                                pdf_url,
-                                exc,
-                            )
-                            continue
-
-                        if not pdf_fetched:
-                            continue
-                        pdf_content_type, pdf_bytes, pdf_text = pdf_fetched
-                        if not _name_matches(pdf_text, name):
-                            continue
-                        if not (
-                            _looks_like_register_text(pdf_text)
-                            or _looks_like_register_url(pdf_url)
-                        ):
-                            continue
-
-                        store_register(
-                            councillor_id,
-                            pdf_url,
-                            pdf_content_type,
-                            pdf_bytes,
-                            pdf_text,
-                        )
-                        with totals_lock:
-                            totals["stored"] += 1
-                        matched = True
-                        councillor_page_url = pdf_url
-                        break
+                        with pdf_lock:
+                            pdf_rows.append((name, council, pdf_url))
 
                 if matched:
                     break
