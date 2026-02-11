@@ -205,6 +205,8 @@ def find_council_homepage(council: str) -> Optional[str]:
 
 
 _COUNCILLOR_INDEX_KEYWORDS = (
+    "your councillors",
+    "your-councillors",
     "councillor",
     "councillors",
     "members",
@@ -217,7 +219,7 @@ _COUNCILLOR_INDEX_KEYWORDS = (
 
 
 def find_councillor_index_pages(
-    council: str, homepage: str, *, max_pages: int = 40, max_depth: int = 2
+    council: str, homepage: str, *, max_pages: int = 80, max_depth: int = 3
 ) -> list[str]:
     """Crawl from the homepage to discover councillor index pages."""
 

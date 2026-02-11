@@ -25,7 +25,6 @@ from parsers.council_parsers import (
     find_pdf_links,
     find_register_links,
     find_register_pages_for_councillor,
-    find_ward_link,
 )
 
 logger = logging.getLogger(__name__)
@@ -296,8 +295,6 @@ def _process_councillor(
     totals_lock: Lock,
     missing_rows: list[tuple[int, str, str, Optional[str]]],
     missing_lock: Lock,
-    link_rows: list[tuple[str, Optional[str], str, str]],
-    link_lock: Lock,
     pdf_rows: list[tuple[str, str, str]],
     pdf_lock: Lock,
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]],
@@ -334,12 +331,6 @@ def _process_councillor(
             homepage_html = response.text
         except Exception as exc:  # noqa: BLE001 - best-effort only.
             logger.debug("Failed to fetch homepage HTML for %s: %s", council, exc)
-
-    ward_url = ""
-    if homepage_html and ward:
-        ward_link = find_ward_link(homepage, homepage_html, ward)
-        if ward_link:
-            ward_url = ward_link
 
     logger.info(
         "Processing %s (%s, %s)",
@@ -535,9 +526,6 @@ def _process_councillor(
             )
         with failure_lock:
             failure_rows.append((name, council, "missing_register_url"))
-
-    with link_lock:
-        link_rows.append((name, ward, ward_url, councillor_page_url))
     with flow_lock:
         flow_counts[flow_path] = flow_counts.get(flow_path, 0) + 1
 
@@ -555,8 +543,6 @@ def scrape_registers() -> None:
     totals_lock = Lock()
     missing_rows: list[tuple[int, str, str, Optional[str]]] = []
     missing_lock = Lock()
-    link_rows: list[tuple[str, Optional[str], str, str]] = []
-    link_lock = Lock()
     pdf_rows: list[tuple[str, str, str]] = []
     pdf_lock = Lock()
     failure_rows: list[tuple[str, str, str]] = []
@@ -584,8 +570,6 @@ def scrape_registers() -> None:
                     totals_lock,
                     missing_rows,
                     missing_lock,
-                    link_rows,
-                    link_lock,
                     pdf_rows,
                     pdf_lock,
                     register_content_cache,
@@ -609,15 +593,6 @@ def scrape_registers() -> None:
             for row in missing_rows:
                 writer.writerow(row)
         logger.info("Wrote missing councillors report to %s", missing_path)
-
-    if link_rows:
-        links_path = "councillor_links.csv"
-        with open(links_path, "w", newline="", encoding="utf-8") as handle:
-            writer = csv.writer(handle)
-            writer.writerow(["name", "ward", "ward_url", "councillor_page_url"])
-            for row in link_rows:
-                writer.writerow(row)
-        logger.info("Wrote councillor links report to %s", links_path)
 
     if pdf_rows:
         pdf_path = "manual_pdf_registers.csv"
