@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import csv
 import io
 import logging
 import os
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 from typing import Iterable, Optional
 
 import pdfplumber
@@ -14,10 +18,20 @@ from bs4 import BeautifulSoup
 from config import get_db_connection
 from parsers.council_parsers import (
     find_councillor_links,
+    find_council_homepage,
+    find_pdf_links,
     find_register_pages_for_councillor,
+    find_ward_link,
 )
 
 logger = logging.getLogger(__name__)
+_REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/121.0.0.0 Safari/537.36"
+    )
+}
 
 
 def fetch_councillors() -> Iterable[tuple[int, str, str, Optional[str]]]:
@@ -86,11 +100,15 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
     """Extract text from a PDF byte string using pdfplumber."""
 
     chunks: list[str] = []
-    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text() or ""
-            if text:
-                chunks.append(text)
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text() or ""
+                if text:
+                    chunks.append(text)
+    except Exception as exc:  # noqa: BLE001 - treat invalid PDFs as empty text.
+        logger.warning("PDF extraction failed: %s", exc)
+        return ""
 
     return "\n\n".join(chunks).strip()
 
@@ -98,12 +116,14 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
 def fetch_register_content(register_url: str) -> tuple[str, bytes, str]:
     """Download the register URL and return (content_type, bytes, text)."""
 
-    response = requests.get(register_url, timeout=30)
+    response = requests.get(register_url, headers=_REQUEST_HEADERS, timeout=30)
     response.raise_for_status()
 
     content_type = (response.headers.get("Content-Type") or "").lower()
     if not content_type:
-        content_type = "application/pdf" if register_url.lower().endswith(".pdf") else "text/html"
+        content_type = (
+            "application/pdf" if register_url.lower().endswith(".pdf") else "text/html"
+        )
 
     return content_type, response.content, response.text
 
@@ -113,16 +133,65 @@ def _name_matches(text: str, name: str) -> bool:
 
     if not text:
         return False
-    return name.lower() in text.lower()
+    lowered = text.lower()
+    target = name.lower().strip()
+    if target in lowered:
+        return True
+
+    name_parts = [part for part in re.split(r"[^a-z]+", target) if part]
+    if len(name_parts) < 2:
+        return False
+
+    first = name_parts[0]
+    surname = name_parts[-1]
+    tokens = [t for t in re.split(r"[^a-z]+", lowered) if t]
+    if not tokens:
+        return False
+
+    for i, token in enumerate(tokens):
+        if token != surname:
+            continue
+        window = tokens[max(0, i - 3) : i + 4]
+        if any(w == first or w.startswith(first[0]) for w in window):
+            return True
+
+    for i, token in enumerate(tokens):
+        if token != surname:
+            continue
+        window = tokens[i + 1 : i + 4]
+        if any(w == first or w.startswith(first[0]) for w in window):
+            return True
+
+    return False
+
+
+def _looks_like_register_text(text: str) -> bool:
+    if not text:
+        return False
+    lowered = text.lower()
+    phrases = [
+        "register of interests",
+        "register of member interests",
+        "register of members interests",
+        "members' interests",
+        "member's interests",
+        "declaration of interest",
+        "declarations of interest",
+        "pecuniary interests",
+        "disclosable pecuniary interests",
+    ]
+    return any(phrase in lowered for phrase in phrases)
 
 
 def _fetch_and_extract(
     register_url: str,
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]],
+    cache_lock: Lock,
 ) -> Optional[tuple[str, Optional[bytes], str]]:
     """Fetch a URL, extract text, and cache the results."""
 
-    cached = register_content_cache.get(register_url)
+    with cache_lock:
+        cached = register_content_cache.get(register_url)
     if cached:
         return cached
 
@@ -136,8 +205,278 @@ def _fetch_and_extract(
         extracted_text = soup.get_text(" ", strip=True)
         pdf_bytes = None
 
-    register_content_cache[register_url] = (content_type, pdf_bytes, extracted_text)
+    with cache_lock:
+        register_content_cache[register_url] = (content_type, pdf_bytes, extracted_text)
     return register_content_cache[register_url]
+
+
+def get_cached_homepage(council: str) -> Optional[str]:
+    """Return cached council homepage if present."""
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT homepage_url FROM council_homepages WHERE council = %s",
+                (council,),
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
+
+
+def cache_homepage(council: str, homepage_url: str) -> None:
+    """Upsert a council homepage URL into the cache table."""
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO council_homepages (council, homepage_url)
+                VALUES (%s, %s)
+                ON CONFLICT (council) DO UPDATE
+                SET homepage_url = EXCLUDED.homepage_url,
+                    discovered_at = NOW()
+                """,
+                (council, homepage_url),
+            )
+
+
+def councillor_has_match(councillor_id: int) -> bool:
+    """Return True if this councillor already has a stored register."""
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM councillor_registers WHERE councillor_id = %s LIMIT 1",
+                (councillor_id,),
+            )
+            return cur.fetchone() is not None
+
+
+def _process_councillor(
+    councillor_id: int,
+    name: str,
+    council: str,
+    ward: Optional[str],
+    totals: dict[str, int],
+    totals_lock: Lock,
+    missing_rows: list[tuple[int, str, str, Optional[str]]],
+    missing_lock: Lock,
+    link_rows: list[tuple[str, Optional[str], str, str]],
+    link_lock: Lock,
+    pdf_rows: list[tuple[str, str, str]],
+    pdf_lock: Lock,
+    register_content_cache: dict[str, tuple[str, Optional[bytes], str]],
+    cache_lock: Lock,
+) -> None:
+    if councillor_has_match(councillor_id):
+        with totals_lock:
+            totals["processed"] += 1
+        logger.info("Skipping %s (already has match)", name)
+        return
+
+    with totals_lock:
+        totals["processed"] += 1
+
+    homepage = get_cached_homepage(council)
+    if not homepage:
+        homepage = find_council_homepage(council)
+        if homepage:
+            cache_homepage(council, homepage)
+
+    homepage_html = ""
+    if homepage:
+        try:
+            response = requests.get(homepage, headers=_REQUEST_HEADERS, timeout=30)
+            response.raise_for_status()
+            homepage_html = response.text
+        except Exception as exc:  # noqa: BLE001 - best-effort only.
+            logger.debug("Failed to fetch homepage HTML for %s: %s", council, exc)
+
+    ward_url = ""
+    if homepage_html and ward:
+        ward_link = find_ward_link(homepage, homepage_html, ward)
+        if ward_link:
+            ward_url = ward_link
+
+    logger.info(
+        "Processing %s (%s, %s)",
+        name,
+        council,
+        ward or "no ward",
+    )
+
+    try:
+        register_pages = find_register_pages_for_councillor(name, council, ward)
+    except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
+        with totals_lock:
+            totals["search_error"] += 1
+        log_audit(
+            councillor_id,
+            "search_error",
+            f"Search failed: {exc}",
+        )
+        logger.warning("Search failed for %s: %s", name, exc)
+        return
+
+    matched = False
+    councillor_page_url = ""
+    for register_url in register_pages:
+        try:
+            fetched = _fetch_and_extract(register_url, register_content_cache, cache_lock)
+        except Exception as exc:  # noqa: BLE001
+            with totals_lock:
+                totals["register_fetch_error"] += 1
+            log_audit(
+                councillor_id,
+                "register_fetch_error",
+                f"Failed to download register: {exc}",
+            )
+            logger.warning(
+                "Register fetch error for %s (%s): %s", name, register_url, exc
+            )
+            continue
+
+        if not fetched:
+            continue
+        content_type, pdf_bytes, extracted_text = fetched
+
+        if content_type.startswith("application/pdf") or register_url.lower().endswith(".pdf"):
+            with pdf_lock:
+                pdf_rows.append((name, council, register_url))
+
+        if not _name_matches(extracted_text, name):
+            if content_type.startswith("text/html"):
+                try:
+                    response = requests.get(
+                        register_url, headers=_REQUEST_HEADERS, timeout=30
+                    )
+                    response.raise_for_status()
+                except Exception as exc:  # noqa: BLE001 - best-effort only.
+                    logger.debug(
+                        "Failed to re-fetch HTML for %s: %s", register_url, exc
+                    )
+                    continue
+
+                candidate_links = find_councillor_links(
+                    register_url, response.text, name
+                )[:5]
+                for candidate_url in candidate_links:
+                    try:
+                        candidate_fetched = _fetch_and_extract(
+                            candidate_url, register_content_cache, cache_lock
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        with totals_lock:
+                            totals["register_fetch_error"] += 1
+                        log_audit(
+                            councillor_id,
+                            "register_fetch_error",
+                            f"Failed to download councillor link: {exc}",
+                        )
+                        logger.warning(
+                            "Councillor link fetch error for %s (%s): %s",
+                            name,
+                            candidate_url,
+                            exc,
+                        )
+                        continue
+
+                    if not candidate_fetched:
+                        continue
+                    link_content_type, link_pdf_bytes, link_text = candidate_fetched
+                    if not _name_matches(link_text, name):
+                        continue
+                    if not _looks_like_register_text(link_text):
+                        continue
+
+                    store_register(
+                        councillor_id,
+                        candidate_url,
+                        link_content_type,
+                        link_pdf_bytes,
+                        link_text,
+                    )
+                    with totals_lock:
+                        totals["stored"] += 1
+                    matched = True
+                    councillor_page_url = candidate_url
+                    break
+
+                if not matched:
+                    pdf_links = find_pdf_links(register_url, response.text)[:10]
+                    for pdf_url in pdf_links:
+                        try:
+                            pdf_fetched = _fetch_and_extract(
+                                pdf_url, register_content_cache, cache_lock
+                            )
+                        except Exception as exc:  # noqa: BLE001
+                            with totals_lock:
+                                totals["register_fetch_error"] += 1
+                            log_audit(
+                                councillor_id,
+                                "register_fetch_error",
+                                f"Failed to download register PDF: {exc}",
+                            )
+                            logger.warning(
+                                "Register PDF fetch error for %s (%s): %s",
+                                name,
+                                pdf_url,
+                                exc,
+                            )
+                            continue
+
+                        if not pdf_fetched:
+                            continue
+                        pdf_content_type, pdf_bytes, pdf_text = pdf_fetched
+                        if not _name_matches(pdf_text, name):
+                            continue
+                        if not _looks_like_register_text(pdf_text):
+                            continue
+
+                        store_register(
+                            councillor_id,
+                            pdf_url,
+                            pdf_content_type,
+                            pdf_bytes,
+                            pdf_text,
+                        )
+                        with totals_lock:
+                            totals["stored"] += 1
+                        matched = True
+                        councillor_page_url = pdf_url
+                        break
+
+                if matched:
+                    break
+            continue
+
+        if _looks_like_register_text(extracted_text):
+            store_register(
+                councillor_id,
+                register_url,
+                content_type,
+                pdf_bytes,
+                extracted_text,
+            )
+            with totals_lock:
+                totals["stored"] += 1
+            matched = True
+            councillor_page_url = register_url
+            break
+
+    if not matched:
+        with totals_lock:
+            totals["missing_register_url"] += 1
+        with missing_lock:
+            missing_rows.append((councillor_id, name, council, ward))
+        log_audit(
+            councillor_id,
+            "missing_register_url",
+            "No register of interests page contained the councillor name.",
+        )
+
+    with link_lock:
+        link_rows.append((name, ward, ward_url, councillor_page_url))
 
 
 def scrape_registers() -> None:
@@ -150,169 +489,69 @@ def scrape_registers() -> None:
         "search_error": 0,
         "stored": 0,
     }
+    totals_lock = Lock()
+    missing_rows: list[tuple[int, str, str, Optional[str]]] = []
+    missing_lock = Lock()
+    link_rows: list[tuple[str, Optional[str], str, str]] = []
+    link_lock = Lock()
+    pdf_rows: list[tuple[str, str, str]] = []
+    pdf_lock = Lock()
 
     register_content_cache: dict[str, tuple[str, Optional[bytes], str]] = {}
+    cache_lock = Lock()
 
-    for councillor_id, name, council, ward in fetch_councillors():
-        totals["processed"] += 1
-        logger.info(
-            "Processing %s (%s, %s)",
-            name,
-            council,
-            ward or "no ward",
-        )
-
-        logger.info("Searching register pages for %s", name)
-        try:
-            register_pages = find_register_pages_for_councillor(name, council, ward)
-        except Exception as exc:  # noqa: BLE001 - report errors without crashing the loop.
-            totals["search_error"] += 1
-            log_audit(
-                councillor_id,
-                "search_error",
-                f"Search failed: {exc}",
-            )
-            logger.warning("Search failed for %s: %s", name, exc)
-            continue
-
-        logger.info(
-            "Found %s register page(s) for %s", len(register_pages), name
-        )
-        if register_pages:
-            logger.info("Register pages for %s: %s", name, register_pages)
-
-        matched = False
-        for register_url in register_pages:
-            cached = register_content_cache.get(register_url)
-            if cached:
-                content_type, pdf_bytes, extracted_text = cached
-                logger.debug(
-                    "Cache hit for %s content_type=%s text_len=%s",
-                    register_url,
-                    content_type,
-                    len(extracted_text or ""),
+    max_workers = int(os.getenv("SCRAPER_WORKERS", "6"))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = []
+        for councillor_id, name, council, ward in fetch_councillors():
+            futures.append(
+                executor.submit(
+                    _process_councillor,
+                    councillor_id,
+                    name,
+                    council,
+                    ward,
+                    totals,
+                    totals_lock,
+                    missing_rows,
+                    missing_lock,
+                    link_rows,
+                    link_lock,
+                    pdf_rows,
+                    pdf_lock,
+                    register_content_cache,
+                    cache_lock,
                 )
-            else:
-                try:
-                    content_type, raw_bytes, raw_text = fetch_register_content(register_url)
-                except Exception as exc:  # noqa: BLE001 - keep going on fetch failures.
-                    totals["register_fetch_error"] += 1
-                    log_audit(
-                        councillor_id,
-                        "register_fetch_error",
-                        f"Failed to download register: {exc}",
-                    )
-                    logger.warning(
-                        "Register fetch error for %s (%s): %s", name, register_url, exc
-                    )
-                    continue
-
-                is_pdf = "pdf" in content_type or register_url.lower().endswith(".pdf")
-                if is_pdf:
-                    extracted_text = extract_pdf_text(raw_bytes)
-                    pdf_bytes = raw_bytes
-                else:
-                    soup = BeautifulSoup(raw_text, "html.parser")
-                    extracted_text = soup.get_text(" ", strip=True)
-                    pdf_bytes = None
-
-                register_content_cache[register_url] = (
-                    content_type,
-                    pdf_bytes,
-                    extracted_text,
-                )
-                logger.info(
-                    "Fetched %s content_type=%s text_len=%s",
-                    register_url,
-                    content_type,
-                    len(extracted_text or ""),
-                )
-
-            if not _name_matches(extracted_text, name):
-                # If this is HTML, try to follow councillor-specific links.
-                if content_type.startswith("text/html"):
-                    try:
-                        response = requests.get(register_url, timeout=30)
-                        response.raise_for_status()
-                    except Exception as exc:  # noqa: BLE001 - best-effort only.
-                        logger.debug(
-                            "Failed to re-fetch HTML for %s: %s", register_url, exc
-                        )
-                        continue
-
-                    candidate_links = find_councillor_links(
-                        register_url, response.text, name
-                    )[:5]
-                    logger.info(
-                        "Found %s councillor link(s) on %s for %s",
-                        len(candidate_links),
-                        register_url,
-                        name,
-                    )
-                    for candidate_url in candidate_links:
-                        try:
-                            fetched = _fetch_and_extract(
-                                candidate_url, register_content_cache
-                            )
-                        except Exception as exc:  # noqa: BLE001 - keep going on failures.
-                            totals["register_fetch_error"] += 1
-                            log_audit(
-                                councillor_id,
-                                "register_fetch_error",
-                                f"Failed to download councillor link: {exc}",
-                            )
-                            logger.warning(
-                                "Councillor link fetch error for %s (%s): %s",
-                                name,
-                                candidate_url,
-                                exc,
-                            )
-                            continue
-
-                        if not fetched:
-                            continue
-                        link_content_type, link_pdf_bytes, link_text = fetched
-                        if not _name_matches(link_text, name):
-                            continue
-
-                        store_register(
-                            councillor_id,
-                            candidate_url,
-                            link_content_type,
-                            link_pdf_bytes,
-                            link_text,
-                        )
-                        totals["stored"] += 1
-                        matched = True
-                        logger.info(
-                            "Stored register for %s (%s)", name, candidate_url
-                        )
-                        break
-
-                    if matched:
-                        break
-                continue
-
-            store_register(
-                councillor_id,
-                register_url,
-                content_type,
-                pdf_bytes,
-                extracted_text,
             )
-            totals["stored"] += 1
-            matched = True
-            logger.info("Stored register for %s (%s)", name, register_url)
-            break
+        for future in as_completed(futures):
+            _ = future.result()
 
-        if not matched:
-            totals["missing_register_url"] += 1
-            log_audit(
-                councillor_id,
-                "missing_register_url",
-                "No register of interests page contained the councillor name.",
-            )
-            logger.info("No register page matched for %s", name)
+    if missing_rows:
+        missing_path = "missing_councillors.csv"
+        with open(missing_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["id", "name", "council", "ward"])
+            for row in missing_rows:
+                writer.writerow(row)
+        logger.info("Wrote missing councillors report to %s", missing_path)
+
+    if link_rows:
+        links_path = "councillor_links.csv"
+        with open(links_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["name", "ward", "ward_url", "councillor_page_url"])
+            for row in link_rows:
+                writer.writerow(row)
+        logger.info("Wrote councillor links report to %s", links_path)
+
+    if pdf_rows:
+        pdf_path = "manual_pdf_registers.csv"
+        with open(pdf_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["name", "council", "pdf_url"])
+            for row in pdf_rows:
+                writer.writerow(row)
+        logger.info("Wrote manual PDF register list to %s", pdf_path)
 
     logger.info(
         "Finished. processed=%s stored=%s missing_register_url=%s "

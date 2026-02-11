@@ -1,117 +1,45 @@
 id,name,council,ward
+11,Matt Turner,Bassetlaw,Sturton
+12,Warren Limber,Bassetlaw,Beckingham
+6,Andy Gascoyne,Ashfield,Selston
+7,Cathy Mason,Ashfield,Carsic
+8,Dawn Justice,Ashfield,Underwood
+17,Jonathan Noble,Boston,Trinity
+10,Mark Shooter,Barnet,Hendon
+16,Carol Wood,Bolsover,Bolsover South
+4,Giuliano Pinnelli,Arun,Marine
+5,Trevor Bence,Arun,Aldwick East
 1,John Cox,Aberdeenshire,Banff and District
 2,Laurie Carnie,Aberdeenshire,Mearns
 3,Mark Findlater,Aberdeenshire,Troup
-6,Andy Gascoyne,Ashfield,Selston
-7,Cathy Mason,Ashfield,Carsic
-9,Bill Barrett,Ashford,Singleton East
-10,Mark Shooter,Barnet,Hendon
-11,Matt Turner,Bassetlaw,Sturton
-12,Warren Limber,Bassetlaw,Beckingham
-16,Carol Wood,Bolsover,Bolsover South
-17,Jonathan Noble,Boston,Trinity
-18,Michael Westman,Breckland,Thetford Priory
-19,Robin Hunter-Clarke,Breckland,Hermitage
-20,Scott Hussey,Breckland,Bedingfeld
-21,Owain Clatworthy,Bridgend,"Pyle, Kenfig Hill and Cefn Cribwr"
-22,Giles Hall,Broxbourne,Flamstead End
-23,Siobhan Monaghan,Broxbourne,Cheshunt South and Theobalds
 24,Cameron Anderson,Buckinghamshire,"Berryfields, Buckingham Park & Watermead"
 25,Cole Caesar,Buckinghamshire,Burnham
 26,Kathy Gibbon,Buckinghamshire,"Bierton, Kingsbrook & Wing"
 27,Daniel Sutherland,Calderdale,Illingworth and Mixenden
-38,Reg Kain,Cheshire East,Alsager
-39,Graham Heatley,Cheshire West and Chester,Gowy Rural
+22,Giles Hall,Broxbourne,Flamstead End
+23,Siobhan Monaghan,Broxbourne,Cheshunt South and Theobalds
+9,Bill Barrett,Ashford,Singleton East
+18,Michael Westman,Breckland,Thetford Priory
+19,Robin Hunter-Clarke,Breckland,Hermitage
 41,Martin Topp,Chorley,Chorley East
-42,Angus Black,Cornwall,Calstock
-43,Anna Thomason-Kenyon,Cornwall,"Constantine, Mabe & Mawnan"
-44,Bruce Craze,Cornwall,"Four Lanes, Beacon & Troon"
-45,Christine Parsonage,Cornwall,St Columb Minor & Colan
-46,Cliff Crawford,Cornwall,Illogan & Portreath
-47,Elaine Kist,Cornwall,St Stephen-in-Brannel
-48,Ian Wilson,Cornwall,"Fowey, Tywardreath & Par"
-49,Jack Yelland,Cornwall,St Austell Central & Gover
-50,Jamie Hanlon,Cornwall,Penwithick & Boscoppa
-51,Jim Gale,Cornwall,Lynher
-52,Julie Cunningham,Cornwall,St Mewan & Grampound
-53,Karen Knight,Cornwall,Camborne West & Treswithian
-54,Keith Johnson,Cornwall,Saltash Tamar
-55,Kevin Grey,Cornwall,Liskeard Central
-56,Kevin Towill,Cornwall,Newquay Porth & Tretherras
-57,Louise Blackman,Cornwall,Perranporth
-58,Paul Ashton,Cornwall,St Austell Poltair & Mount Charles
-59,Paul Cador,Cornwall,Saltash Trematon & Landrake
-60,Peter Channon,Cornwall,Hayle West
-61,Richard Barker,Cornwall,"St Newlyn East, Cubert & Goonhavern"
-62,Rob Heslington,Cornwall,Gwinear-Gwithian & Hayle East
-63,Rob Parsonage,Cornwall,Torpoint
-64,Roger Tarrant,Cornwall,Redruth North
-65,Rowland O'Connor,Cornwall,"St Columb Major, St Mawgan & St Wenn"
-66,Sally Harrison,Cornwall,Redruth South
-67,Sean Smith,Cornwall,St Cleer & Menheniot
-68,Steve Trevelyan,Cornwall,Roche & Bugle
-69,Susanne Desmonde,Cornwall,Pool & Tehidy
+20,Scott Hussey,Breckland,Bedingfeld
+38,Reg Kain,Cheshire East,Alsager
+233,Graham McAndrew,East Hertfordshire,Bishop's Stortford Thorley Manor
+234,Terry Smith,East Hertfordshire,Braughing & Standon
+235,Danny Brookes,East Lindsey,Winthorpe
+236,Jimmy Brookes,East Lindsey,Burgh le Marsh
+21,Owain Clatworthy,Bridgend,"Pyle, Kenfig Hill and Cefn Cribwr"
+28,Andy Osborn,Cambridgeshire,Roman Bank & Peckover
+29,Christopher Thornhill,Cambridgeshire,March South & Rural
+30,Colin Galbraith,Cambridgeshire,March North & Waldersey
+31,Daniel Divine,Cambridgeshire,Chatteris
+32,Des Watt,Cambridgeshire,Yaxley & Farcet
+33,James Sidlow,Cambridgeshire,Ramsey & Bury
+34,John Wells,Cambridgeshire,Littleport
+35,Michael Fisher,Cambridgeshire,Whittlesey South
+36,Ricky Ioannides,Cambridgeshire,St. Neots Eynesbury
+37,Stefan Fisher,Cambridgeshire,March North & Waldersey
 70,Michael Brown,Dartford,Greenhithe & Knockhall
-71,Adrian Hunter,Derbyshire,Wirksworth
-72,Alan Graves,Derbyshire,Aston
-73,Alex Millward,Derbyshire,Linacre & Loundsley Green
-74,Carol Wood,Derbyshire,Bolsover
-75,Charlotte Gates,Derbyshire,Swanwick & Riddings
-76,Charlotte Hill,Derbyshire,Melbourne & Woodville
-77,Dan Price,Derbyshire,Ilkeston North
-78,Darran Furness,Derbyshire,"Codnor, Aldercar, Langley Mill & Loscoe"
-79,Darren Muizelaar,Derbyshire,"North Wingfield, Pilsley & Morton"
-80,David Elsdon,Derbyshire,Killamarsh & Renishaw
-81,David Harvey,Derbyshire,Hardwick
-82,Dawn Abbott,Derbyshire,Staveley
-83,Jack Bradley,Derbyshire,Long Eaton North
-84,Jamie Hodgson,Derbyshire,Eckington & Coal Aston
-85,Jason Isherwood,Derbyshire,Etherow
-86,Jodie Brown,Derbyshire,Long Eaton South
-87,John Lawson,Derbyshire,Breaston
-88,Joseph Turrell,Derbyshire,Swadlincote West
-89,Joss Barnes,Derbyshire,Dunston
-90,Kevin Harper,Derbyshire,Barlborough & Clowne
-91,Lewis Whitbread,Derbyshire,Hasland & Rother
-92,Mark Chambers,Derbyshire,Ripley West & Crich
-93,Mark Cliff,Derbyshire,Staveley North & Whittington
-94,Martin Bromley,Derbyshire,Swadlincote East
-95,Matthew Benfield,Derbyshire,Repton & Stenson
-96,Melandra Smith,Derbyshire,Buxton North & East
-97,Nephi Somerville,Derbyshire,South Normanton & Pinxton
-98,Nick Adams,Derbyshire,Dovedale & Ashbourne North
-99,Paul Oxberry,Derbyshire,Swadlincote South
-100,Paul Parkin,Derbyshire,Shirland & Wingerworth South
-101,Peter Mathews,Derbyshire,Heanor
-102,Richard Hatfield,Derbyshire,Ilkeston Central
-103,Richard Morgan,Derbyshire,Horsley
-104,Richard Smith,Derbyshire,Brimington
-105,Robert Reaney,Derbyshire,Sutton
-106,Roy Hallett,Derbyshire,Elmton with Creswell & Whitwell
-107,Sam Redfern,Derbyshire,Hilton
-108,Sarah Reaney,Derbyshire,Shirebrook & Pleasley
-109,Simon Mabbott,Derbyshire,Ilkeston South & Kirk Hallam
-110,Stephen Reed,Derbyshire,Clay Cross & Tupton
-111,Stuart Bent,Derbyshire,Alfreton & Somercotes
-112,Tony Wilson,Derbyshire,Ripley East
-113,Angela Nash,Devon,Wonford & St. Loyes
-114,Edward Hill,Devon,Pinhoe & Mincinglake
-115,Heather Horner,Devon,Ipplepen & The Kerswells
-116,Helen Brown,Devon,Exmouth
-117,Jacqueline Fry,Devon,Newton Abbot North
-118,James Grainger,Devon,Okehampton Rural
-119,Lynne Rowsell,Devon,Holsworthy Rural
-120,Mark Barry,Devon,Bideford East
-121,Michael Cook,Devon,Yelverton Rural
-122,Mick Cockerham,Devon,Newton Abbot South
-123,Nat Vanstone,Devon,Broadclyst
-124,Neale Raleigh,Devon,Tiverton East
-125,Neil Stevens,Devon,Alphington & Cowick
-126,Richard Hopley,Devon,South Molton
-127,Robin Julian,Devon,Bideford West & Hartland
-128,Sue Davies,Devon,Hatherleigh & Chagford
-129,Tony Dempster,Devon,Kingsteignton & Teign Estuary
-130,Tony Stevens,Devon,Exwick & St. Thomas
 131,Alexander Jones,Doncaster,Edenthorpe & Kirk Sandall
 132,Antony Dodds,Doncaster,Mexborough
 133,Brendan Megaw,Doncaster,Mexborough
@@ -149,102 +77,16 @@ id,name,council,ward
 165,Steven Plater,Doncaster,Adwick le Street & Carcroft
 166,Vicky Lawson,Doncaster,Norton & Askern
 167,William Shaw,Doncaster,Conisbrough
-168,Aaron Hillam,Durham,Craghead & South Moor
-169,Adrian Schulman,Durham,Crook
-170,Andrew Eales,Durham,Aycliffe South
-171,Andrew Harrison,Durham,Seaham
-172,Andrew Husband,Durham,Chester-le-Street North
-173,Andrew Kilburn,Durham,Benfieldside
-174,Brian Quirey,Durham,Pelton
-175,Cathy Hunt,Durham,Willington & Hunwick
-176,Chris Fairs,Durham,Seaham
-177,Christine Blatchford,Durham,Stanley
-178,Craig Marshall,Durham,Derwent & Pont Valley
-179,Darren Grimes,Durham,Annfield Plain & Tanfield
-180,David Cumming,Durham,Murton
-181,David Walton,Durham,Stanley
-182,Dawn Bellingham,Durham,Horden & Dene House
-183,Dawn Saunders,Durham,Peterlee
-184,Emma Hunt,Durham,Willington & Hunwick
-185,Gavin Brydon,Durham,Derwent & Pont Valley
-186,George Anderson,Durham,Dalton & Dawdon
-187,Howard Brown,Durham,Easington & Shotton
-188,Ian Catchpole,Durham,Sedgefield
-190,Jack McGlenen,Durham,Dalton & Dawdon
-191,Jackie Teasdale,Durham,Delves Lane
-192,James Pickard,Durham,Sacriston & Witton Gilbert
-193,James Stephenson,Durham,Shildon & Dene Valley
-194,Jasmine Fox,Durham,Lower Teesdale
-195,Jillian Campbell,Durham,Lower Teesdale
-196,Joe Quinn,Durham,Ferryhill
-197,John Bailey,Durham,Easington & Shotton
-198,John Cook,Durham,Craghead & South Moor
-199,John Cottier,Durham,Horden & Dene House
-200,John Grant,Durham,Aycliffe South
-201,John Kinvig,Durham,Bishop Auckland
-202,Karen Allison,Durham,Annfield Plain & Tanfield
-203,Kate Rowland,Durham,Shildon & Dene Valley
-204,Kenny Hope,Durham,Delves Lane
-205,Kyle Genner,Durham,Bowburn & Coxhoe
-206,Louise Taylor,Durham,Easington & Shotton
-207,Lyndsey Fox,Durham,Bishop Auckland
-208,Mark Rowney,Durham,Murton
-209,Mary-Lynn Franklin,Durham,Trimdon & Wingate
-210,Matt Burnard,Durham,Deerness
-211,Michael Ramage,Durham,Shildon & Dene Valley
-212,Neil Craggs,Durham,Thornley & Wheatley Hill
-213,Nick Brown,Durham,West Auckland
-214,Nicola Lyons,Durham,Tudhoe
-215,Nicole Brown,Durham,Aycliffe South
-216,Paul Bean,Durham,Crook
-217,Paul Mountford,Durham,Ferryhill
-218,Rhys Burriss,Durham,Pittington & Sherburn
-219,Robbie Rodiss,Durham,Crook
-220,Robert Potts,Durham,Evenwood
-221,Saffron Sims-Brydon,Durham,Derwent & Pont Valley
-222,Sandra Grindle,Durham,Benfieldside
-223,Scott Woodhouse,Durham,Castle Eden & Passfield
-224,Sean Healy,Durham,Deerness
-225,Stephen Bowron,Durham,Chilton
-226,Stephen Gray,Durham,West Auckland
-227,Steve Biggs,Durham,Pelton
-228,Steven Franklin,Durham,Peterlee
-230,Tim McGuinness,Durham,Aycliffe North & Middridge
-231,Tim Robson,Durham,Sacriston & Witton Gilbert
-232,Tom Redmond,Durham,Bishop Auckland
-233,Graham McAndrew,East Hertfordshire,Bishop's Stortford Thorley Manor
-234,Terry Smith,East Hertfordshire,Braughing & Standon
-235,Danny Brookes,East Lindsey,Winthorpe
-236,Jimmy Brookes,East Lindsey,Burgh le Marsh
 238,Harrison Allman-Varty,Elmbridge,Oatlands and Burwood Park
-239,Jaymey McIvor,Epping Forest,Ongar
-242,Tony Payne,Exeter,Mincinglake and Whipton
-243,Claire Brown,Falkirk,Upper Braes
+240,Dan Price,Erewash,Cotmanhay
 244,David Wimble,Folkestone and Hythe,New Romney
+39,Graham Heatley,Cheshire West and Chester,Gowy Rural
+40,Mandy Clare,Cheshire West and Chester,Winsford Dene
+243,Claire Brown,Falkirk,Upper Braes
+242,Tony Payne,Exeter,Mincinglake and Whipton
 245,Stuart Graham,Forest of Dean,Cinderford East
-246,Thomas Kerr,Glasgow City,Shettleston
-247,Chris Mayo,Gloucestershire,Quedgeley
-248,Dean Botterill,Gloucestershire,Stonehouse
-249,Jason Preece,Gloucestershire,Grange & Kingsway
-250,Leigh Challis,Gloucestershire,Coleford
-252,Michael Rees,Gloucestershire,Cam Valley
-253,Piers Camp,Gloucestershire,Drybrook & Lydbrook
-254,Ray Donaghue,Gloucestershire,Cinderford
-255,Stuart Graham,Gloucestershire,Mitcheldean
-256,Vernon Gray,Gloucestershire,Tuffley & Moreland
-257,Vernon Smith,Gloucestershire,Tewkesbury West
+241,Jaymey McIvor,Essex,Ongar and Rural
 258,Paul Jago,Harlow,Mark Hall
-261,Vicky Rhodes,Havant,Leigh Park Hermitage
-263,Christopher Wright,Hertfordshire,Hemel Hempstead St. Pauls
-264,David Herring,Hertfordshire,Hemel Hempstead North West
-266,Janet Bainbridge,Hertfordshire,Broadwater
-267,Mark Biddle,Hertfordshire,Welwyn Garden City South
-269,Michael Blissett,Hertfordshire,Harpenden South West
-270,Peter Colley,Hertfordshire,Bedwell
-271,Saul Jacob,Hertfordshire,Borehamwood South
-272,Simon Rhodes,Hertfordshire,Borehamwood North
-274,Tony Hill,Hertfordshire,Flamstead End & Turnford
-275,Wendy Rouse,Hertfordshire,Shephall
 276,Caroline Gladwin,Isle of Wight,Central Rural
 277,David Maclean,Isle of Wight,Lake North
 278,Adrian Kibble,Kent,Whitstable East & Herne Bay West
@@ -304,59 +146,17 @@ id,name,council,ward
 332,Thomas Mallon,Kent,Swanscombe & Greenhithe
 333,Trevor Shonk,Kent,Ramsgate
 334,Wayne Chapman,Kent,Tenterden
-335,Julian Kirk,King's Lynn and West Norfolk,"Walsoken, West Walton & Walpole"
-336,Peter Hodson,King's Lynn and West Norfolk,Denver
-337,Alice Jones,Lancashire,Fleetwood West & Cleveleys West
-338,Andy Blake,Lancashire,Moss Side & Farington
-339,Ashley Joynes,Lancashire,Accrington South
-340,Brian Moore,Lancashire,Morecambe South
-341,Clive Balchin,Lancashire,Mid-Rossendale
-342,Daniel Matchett,Lancashire,Whitworth & Bacup
-343,David Dwyer,Lancashire,Fylde South
-344,David Shaw,Lancashire,Fleetwood East
-345,Eddie Kutavicius,Lancashire,Burnley South West
-346,Ella Worthington,Lancashire,Skelmersdale West
-347,Ellie Close,Lancashire,Leyland South
-349,Gary Kniveton,Lancashire,Morecambe Central
-350,Gaynor Hargreaves,Lancashire,Oswaldtwistle
-351,Ged Mirfin,Lancashire,Ribble Valley North East
-352,Graeme Austin,Lancashire,Heysham
-353,Graham Dalton,Lancashire,Lancaster Rural North
-354,Hannah Whalley,Lancashire,Leyland Central
-355,Ian Duxbury,Lancashire,Longridge with Bowland
-356,James Crawford,Lancashire,Cleveleys East
-357,James Tomlinson,Lancashire,Wyre Rural East
-358,Jan Schofield,Lancashire,Cleveleys South & Carleton
-359,Joanne Ash,Lancashire,Rossendale South
-360,Joel Tetlow,Lancashire,Accrington North
-361,John Clemson,Lancashire,Hoghton with Wheelton
-362,Jordan Fox,Lancashire,"Great Harwood, Rishton & Clayton-le-Moors"
-363,Joshua Roberts,Lancashire,Fylde East
-364,Lance Parkinson,Lancashire,"Great Harwood, Rishton & Clayton-le-Moors"
-365,Lee Hutchinson,Lancashire,Chorley South
-366,Leon Graham,Lancashire,West Lancashire West
-367,Liam Thomson,Lancashire,Burnley Central West
-369,Luke Parker,Lancashire,Preston East
-370,Mackenzie Ritson,Lancashire,Rossendale East
-371,Maria Jones,Lancashire,Preston Rural
-372,Marion Atkinson,Lancashire,Pendle Central
-373,Mark Poulton,Lancashire,Burnley Rural
-374,Mark Wade,Lancashire,Chorley Rural West
-375,Martin Topp,Lancashire,Chorley North
-376,Martyn Sutton,Lancashire,Skerton
-377,Matthew Salter,Lancashire,Wyre Rural Central
-378,Nathan McCollum,Lancashire,Pendle Rural
-379,Nigel Alderson,Lancashire,Thornton & Hambleton
-380,Nigel Swales,Lancashire,Skelmersdale East
-381,Rick Edwards,Lancashire,Burscough & Rufford
-382,Russell Walsh,Lancashire,Morecambe North
-383,Shaun Crimmins,Lancashire,Lancaster Rural East
-384,Simon Evans,Lancashire,Skelmersdale Central
-385,Simon Gummer,Lancashire,Lostock Hall & Bamber Bridge
-386,Stephen Atkinson,Lancashire,Ribble Valley South West
-387,Tom Lord,Lancashire,South Ribble West
-388,Tom Pickup,Lancashire,Padiham & Burnley West
-389,Warren Goldsworthy,Lancashire,Clitheroe
+247,Chris Mayo,Gloucestershire,Quedgeley
+248,Dean Botterill,Gloucestershire,Stonehouse
+249,Jason Preece,Gloucestershire,Grange & Kingsway
+250,Leigh Challis,Gloucestershire,Coleford
+251,Mark Howard,Gloucestershire,Lydney
+252,Michael Rees,Gloucestershire,Cam Valley
+253,Piers Camp,Gloucestershire,Drybrook & Lydbrook
+254,Ray Donaghue,Gloucestershire,Cinderford
+255,Stuart Graham,Gloucestershire,Mitcheldean
+256,Vernon Gray,Gloucestershire,Tuffley & Moreland
+257,Vernon Smith,Gloucestershire,Tewkesbury West
 390,Adam Tilbury,Leicestershire,Forest & Measham
 391,Andrew Hamilton-Gray,Leicestershire,Loughborough North West
 392,Andrew Innes,Leicestershire,Melton East
@@ -382,7 +182,78 @@ id,name,council,ward
 412,Paul Rudkin,Leicestershire,Quorn & Barrow
 413,Peter Morris,Leicestershire,Loughborough North
 414,Virge Richichi,Leicestershire,Ibstock & Appleby
-415,Matthew Wallens,Lichfield,Curborough
+337,Alice Jones,Lancashire,Fleetwood West & Cleveleys West
+338,Andy Blake,Lancashire,Moss Side & Farington
+339,Ashley Joynes,Lancashire,Accrington South
+340,Brian Moore,Lancashire,Morecambe South
+341,Clive Balchin,Lancashire,Mid-Rossendale
+342,Daniel Matchett,Lancashire,Whitworth & Bacup
+343,David Dwyer,Lancashire,Fylde South
+344,David Shaw,Lancashire,Fleetwood East
+345,Eddie Kutavicius,Lancashire,Burnley South West
+346,Ella Worthington,Lancashire,Skelmersdale West
+347,Ellie Close,Lancashire,Leyland South
+348,Fred Cottam,Lancashire,South Ribble East
+349,Gary Kniveton,Lancashire,Morecambe Central
+350,Gaynor Hargreaves,Lancashire,Oswaldtwistle
+351,Ged Mirfin,Lancashire,Ribble Valley North East
+352,Graeme Austin,Lancashire,Heysham
+353,Graham Dalton,Lancashire,Lancaster Rural North
+354,Hannah Whalley,Lancashire,Leyland Central
+355,Ian Duxbury,Lancashire,Longridge with Bowland
+356,James Crawford,Lancashire,Cleveleys East
+357,James Tomlinson,Lancashire,Wyre Rural East
+358,Jan Schofield,Lancashire,Cleveleys South & Carleton
+359,Joanne Ash,Lancashire,Rossendale South
+360,Joel Tetlow,Lancashire,Accrington North
+361,John Clemson,Lancashire,Hoghton with Wheelton
+362,Jordan Fox,Lancashire,"Great Harwood, Rishton & Clayton-le-Moors"
+363,Joshua Roberts,Lancashire,Fylde East
+364,Lance Parkinson,Lancashire,"Great Harwood, Rishton & Clayton-le-Moors"
+365,Lee Hutchinson,Lancashire,Chorley South
+366,Leon Graham,Lancashire,West Lancashire West
+367,Liam Thomson,Lancashire,Burnley Central West
+368,Lorenzo More,Lancashire,Penwortham East & Walton-le-Dale
+369,Luke Parker,Lancashire,Preston East
+370,Mackenzie Ritson,Lancashire,Rossendale East
+371,Maria Jones,Lancashire,Preston Rural
+372,Marion Atkinson,Lancashire,Pendle Central
+373,Mark Poulton,Lancashire,Burnley Rural
+374,Mark Wade,Lancashire,Chorley Rural West
+375,Martin Topp,Lancashire,Chorley North
+376,Martyn Sutton,Lancashire,Skerton
+377,Matthew Salter,Lancashire,Wyre Rural Central
+378,Nathan McCollum,Lancashire,Pendle Rural
+379,Nigel Alderson,Lancashire,Thornton & Hambleton
+380,Nigel Swales,Lancashire,Skelmersdale East
+381,Rick Edwards,Lancashire,Burscough & Rufford
+382,Russell Walsh,Lancashire,Morecambe North
+383,Shaun Crimmins,Lancashire,Lancaster Rural East
+384,Simon Evans,Lancashire,Skelmersdale Central
+385,Simon Gummer,Lancashire,Lostock Hall & Bamber Bridge
+386,Stephen Atkinson,Lancashire,Ribble Valley South West
+387,Tom Lord,Lancashire,South Ribble West
+388,Tom Pickup,Lancashire,Padiham & Burnley West
+389,Warren Goldsworthy,Lancashire,Clitheroe
+260,Sharon Collings,Havant,Leigh Park Central & West Leigh
+261,Vicky Rhodes,Havant,Leigh Park Hermitage
+262,Anthony Owen,Hertfordshire,Goffs Oak & Bury Green
+263,Christopher Wright,Hertfordshire,Hemel Hempstead St. Pauls
+264,David Herring,Hertfordshire,Hemel Hempstead North West
+265,Doug Bainbridge,Hertfordshire,Old Stevenage
+266,Janet Bainbridge,Hertfordshire,Broadwater
+267,Mark Biddle,Hertfordshire,Welwyn Garden City South
+268,Matthew Hurst,Hertfordshire,St. Nicholas
+269,Michael Blissett,Hertfordshire,Harpenden South West
+270,Peter Colley,Hertfordshire,Bedwell
+271,Saul Jacob,Hertfordshire,Borehamwood South
+272,Simon Rhodes,Hertfordshire,Borehamwood North
+273,Terry Smith,Hertfordshire,Buntingford
+274,Tony Hill,Hertfordshire,Flamstead End & Turnford
+275,Wendy Rouse,Hertfordshire,Shephall
+460,Barry Answer,Mansfield,Rufford
+461,Martin Wright,Mansfield,Holly Forest Town
+462,Mick Barton,Mansfield,Maun Valley Forest Town
 416,Adrian Findley,Lincolnshire,Skegness North
 417,Alan Woodruff,Lincolnshire,Eagle & Hykeham West
 418,Alex McGonigle,Lincolnshire,Louth Wolds
@@ -427,17 +298,11 @@ id,name,council,ward
 457,Thomas Catton,Lincolnshire,Louth South
 458,Thomas Sneath,Lincolnshire,Holbeach
 459,Trevor Bridgwood,Lincolnshire,Bardney & Cherry Willingham
-460,Barry Answer,Mansfield,Rufford
-461,Martin Wright,Mansfield,Holly Forest Town
-462,Mick Barton,Mansfield,Maun Valley Forest Town
-463,David Finch,Medway,Rochester East & Warren Wood
-464,John Vye,Medway,Rochester East & Warren Wood
 466,David Bick,Norfolk,Thetford West
 467,Julian Kirk,Norfolk,Marshland North
-468,Matthew McLean,North Ayrshire,Irvine South
-469,Stewart Ferguson,North Ayrshire,Ardrossan
 470,Stephen Reed,North East Derbyshire,Killamarsh East
 471,Oliver Freeston,North East Lincolnshire,Croft Baker
+415,Matthew Wallens,Lichfield,Curborough
 472,Andy Sims,North Northamptonshire,Finedon
 473,Ash Hall,North Northamptonshire,Pemberton
 474,Barry O'Brien,North Northamptonshire,Gretton & Weldon
@@ -448,12 +313,16 @@ id,name,council,ward
 479,Chris Munday,North Northamptonshire,Croyland & Swanspool
 480,Darren Rance,North Northamptonshire,Brickhill & Queensway
 481,David Donnelly,North Northamptonshire,Corby West
+463,David Finch,Medway,Rochester East & Warren Wood
+464,John Vye,Medway,Rochester East & Warren Wood
 482,Denis McLean,North Northamptonshire,Pipers Hill
 483,Eddie McDonald,North Northamptonshire,Gretton & Weldon
+511,Stuart Davies,North Somerset,Wick St Lawrence & St Georges
 484,Elizabeth Wright,North Northamptonshire,Raunds
 485,Frank Kilgallon,North Northamptonshire,Oakley
 486,Gavin Beales,North Northamptonshire,Brickhill & Queensway
 487,Gordon Dunsmuir,North Northamptonshire,Irchester
+514,Tony Saffell,North West Leicestershire,Castle Donington Castle
 488,Graham Cheatley,North Northamptonshire,Kingswood
 489,Gregory Wilcox,North Northamptonshire,Irthlingborough
 490,Helen Campbell,North Northamptonshire,Kingswood
@@ -477,33 +346,10 @@ id,name,council,ward
 508,Trevor Conway,North Northamptonshire,Oakley
 509,Vinnie Whitrow,North Northamptonshire,Hatton Park
 510,Vlaho Radin,North Northamptonshire,Kingswood
-511,Stuart Davies,North Somerset,Wick St Lawrence & St Georges
-512,Steve Watson,North Warwickshire,Atherstone Central
-513,Sue Guilmant,North Warwickshire,Arley and Whitacre
-514,Tony Saffell,North West Leicestershire,Castle Donington Castle
 515,Mike Jordan,North Yorkshire,Camblesforth & Carlton
-516,Arty Hume,Northumberland,Amble
-517,Barry Elliott,Northumberland,Newsham
-518,Ben Audsley,Northumberland,Newbiggin-by-the-Sea
-519,David FitzGerald,Northumberland,Choppington & Hepscott
-520,David Johnson,Northumberland,Isabella
-521,David Swinhoe,Northumberland,Plessey
-522,Denise Nicholson,Northumberland,Bebside & Kitty Brewster
-523,John Allen,Northumberland,Hirst
-524,Karl Green,Northumberland,Seaton with Spital
-525,Mark Peart,Northumberland,Croft
-526,Martin Jackson,Northumberland,Stakeford
-527,Natalie Rolls,Northumberland,Wensleydale
-529,Patrick Lambert,Northumberland,Norham & Islandshires
-530,Pauline Davidson,Northumberland,Amble West with Warkworth
-531,Rick Baker,Northumberland,Cowpen
-532,Roger Spriddell,Northumberland,Sleekburn
-533,Scott Amery,Northumberland,Bothal
-534,Shaun Knowles,Northumberland,Cramlington South West
-535,Sonia Simm,Northumberland,Haydon
-536,Stephen Flower,Northumberland,Hartley
-537,Steven Roberts,Northumberland,College with North Seaton
-538,Trevor Austin,Northumberland,Bedlington East
+468,Matthew McLean,North Ayrshire,Irvine South
+469,Stewart Ferguson,North Ayrshire,Ardrossan
+579,Hao Du,Oxfordshire,Didcot South
 539,Alan Bite,Nottinghamshire,Ashfields
 540,Andy McCormack,Nottinghamshire,Warsop
 541,Barry Answer,Nottinghamshire,Mansfield West
@@ -513,6 +359,7 @@ id,name,council,ward
 545,Christopher Adegoke,Nottinghamshire,Hucknall West
 546,Daniel Saban,Nottinghamshire,Retford West
 547,David Clark,Nottinghamshire,Ollerton
+548,Dawn Justice,Nottinghamshire,Selston
 549,Desmond Clarke,Nottinghamshire,Newark West
 550,Faz Choudhury,Nottinghamshire,Mansfield South
 551,Glyn Pepper,Nottinghamshire,Greasley & Brinsley
@@ -530,34 +377,56 @@ id,name,council,ward
 563,Kev Dale,Nottinghamshire,Worksop North
 564,Kevin Brown,Nottinghamshire,Mansfield South
 565,Martin Wright,Nottinghamshire,Mansfield East
+566,Mick Barton,Nottinghamshire,Mansfield East
 567,Mike Robertson,Nottinghamshire,Misterton
 568,Paul Brill,Nottinghamshire,Carlton West
 569,Richard Darrington,Nottinghamshire,Hucknall South
 570,Richard Lowe,Nottinghamshire,"Toton, Chilwell & Attenborough"
 571,Richard Ward,Nottinghamshire,Blidworth
+572,Rory Green,Nottinghamshire,Kirkby South
 573,Russell Dodd,Nottinghamshire,Worksop East
 574,Simon Wright,Nottinghamshire,Kirkby North
 575,Stuart Matthews,Nottinghamshire,Leake & Ruddington
 576,Terry Cox,Nottinghamshire,Sutton West
 577,Warren Limber,Nottinghamshire,Tuxford
 578,Wendy Lukacs,Nottinghamshire,Arnold North
-579,Hao Du,Oxfordshire,Didcot South
-580,Marion Atkinson,Pendle,Vivary Bridge
-585,Alec Leishman,Renfrewshire,Erskine and Inchinnan
-586,John Gray,Renfrewshire,Renfrew North and Braehead
-605,Bente Height,Somerset,Shepton Mallet
-606,Marcus Barr,Somerset,Wellington
+516,Arty Hume,Northumberland,Amble
+517,Barry Elliott,Northumberland,Newsham
+518,Ben Audsley,Northumberland,Newbiggin-by-the-Sea
+519,David FitzGerald,Northumberland,Choppington & Hepscott
+520,David Johnson,Northumberland,Isabella
+521,David Swinhoe,Northumberland,Plessey
+522,Denise Nicholson,Northumberland,Bebside & Kitty Brewster
+523,John Allen,Northumberland,Hirst
+524,Karl Green,Northumberland,Seaton with Spital
+525,Mark Peart,Northumberland,Croft
+526,Martin Jackson,Northumberland,Stakeford
+527,Natalie Rolls,Northumberland,Wensleydale
+528,Nicole Brooke,Northumberland,Berwick North
+529,Patrick Lambert,Northumberland,Norham & Islandshires
+530,Pauline Davidson,Northumberland,Amble West with Warkworth
+531,Rick Baker,Northumberland,Cowpen
+532,Roger Spriddell,Northumberland,Sleekburn
+533,Scott Amery,Northumberland,Bothal
+534,Shaun Knowles,Northumberland,Cramlington South West
+535,Sonia Simm,Northumberland,Haydon
+536,Stephen Flower,Northumberland,Hartley
+537,Steven Roberts,Northumberland,College with North Seaton
+538,Trevor Austin,Northumberland,Bedlington East
+239,Jaymey McIvor,Epping Forest,Ongar
 607,Ingrid Sheard,South Holland,Spalding Monks House
 608,Jane King,South Holland,"Donington, Quadring and Gosberton"
 609,Manzur Hasan,South Holland,Spalding St John's
 610,Robert Gibson,South Holland,Spalding St Paul's
 611,Thomas Sneath,South Holland,"Moulton, Weston and Cowbit"
-612,Poppy Corbett,South Lanarkshire,Clydesdale West
-613,Ross Lambie,South Lanarkshire,Clydesdale South
+512,Steve Watson,North Warwickshire,Atherstone Central
+513,Sue Guilmant,North Warwickshire,Arley and Whitacre
+585,Alec Leishman,Renfrewshire,Erskine and Inchinnan
+586,John Gray,Renfrewshire,Renfrew North and Braehead
 614,Tony Cox,Southend-on-Sea,West Shoebury
 615,Darryl Jones,Southend-on-Sea,Southchurch
-616,John Pinnington,St. Helens,Sutton South East
-617,Victor Floyd,St. Helens,Blackbrook
+612,Poppy Corbett,South Lanarkshire,Clydesdale West
+613,Ross Lambie,South Lanarkshire,Clydesdale South
 618,Adam Griffiths,Staffordshire,Newcastle South
 619,Alex Hunt,Staffordshire,Chadsmoor
 620,Andrew Clissett,Staffordshire,Burntwood North
@@ -607,8 +476,8 @@ id,name,council,ward
 664,Warwick McKenzie,Staffordshire,Caverswall
 665,Wayne Luca,Staffordshire,Watling
 666,Wayne Titley,Staffordshire,Eccleshall & Gnosall
-667,Sarah Whalley-Hoggins,Stratford-on-Avon,Brailes & Compton
-668,Christopher Hudson,Suffolk,Belstead Brook
+616,John Pinnington,St. Helens,Sutton South East
+617,Victor Floyd,St. Helens,Blackbrook
 669,Chris Palmer,Swale,"Hartlip, Newington and Upchurch"
 670,Kieran Mishchuk,Swale,Milton Regis
 671,Lloyd Chapman,Swale,"Bobbing, Iwade and Lower Halstow"
@@ -622,33 +491,25 @@ id,name,council,ward
 680,Michael Bush,Tendring,The Oakleys & Wix
 681,Peter Harris,Tendring,Weeley & Tendring
 682,Richard Everett,Tendring,Frinton
-683,Peter Evans,Thanet,Thanet Villages
+668,Christopher Hudson,Suffolk,Belstead Brook
+691,Heather Asker,Uttlesford,Saffron Walden Castle
+674,Allan Hopwood,Tameside,Longdendale
+605,Bente Height,Somerset,Shepton Mallet
+606,Marcus Barr,Somerset,Wellington
 684,Alan Benson,Thurrock,Ockendon
 685,Alex Anderson,Thurrock,Stanford East and Corringham Town
 686,Russell Cherry,Thurrock,Ockendon
-691,Heather Asker,Uttlesford,Saffron Walden Castle
-692,Anne-Marie Sonko,Warwickshire,Earl Craven
-693,Chris Morris,Warwickshire,Bedworth West
-694,Dale Bridgewater,Warwickshire,Camp Hill
-695,Dan Glover,Warwickshire,New Bilton & Overslade
-696,Darren Cheshire,Warwickshire,Nuneaton East
-697,Edward Harris,Warwickshire,Baddesley & Dordon
-698,George Finch,Warwickshire,Bedworth Central
-699,James Crocker,Warwickshire,Arden
-700,Jennifer Warren,Warwickshire,Hartshill & Mancetter
-701,John Waine,Warwickshire,Bulkington & Whitestone
-702,Luke Cooper,Warwickshire,Studley
-703,Luke Shingler,Warwickshire,Galley Common
-704,Michael Bannister,Warwickshire,Nuneaton Abbey
-705,Neil Garland,Warwickshire,Bedworth North
-706,Nigel Golby,Warwickshire,Stockingford
-707,Rob Howard,Warwickshire,Attleborough
-708,Robert Aitkenhead,Warwickshire,Coleshill North & Water Orton
-709,Robert Gisbourne,Warwickshire,Atherstone
-710,Scott Cameron,Warwickshire,Coleshill South & Arley
-711,Stan Carvell,Warwickshire,Bedworth East
-712,Stephen Shaw,Warwickshire,Polesworth
-714,Wayne Briggs,Warwickshire,Arbury
+761,Augusta Urquhart-Nicholls,Wiltshire,Calne Chilvester & Abberd
+762,Boaz Barry,Wiltshire,Westbury North
+763,Chris Brautigam,Wiltshire,Southwick
+764,Chris Vaughan,Wiltshire,Trowbridge Park
+765,Dave Lumsden,Wiltshire,Tidworth East & Ludgershall South
+766,Ed Rimmer,Wiltshire,Salisbury Bemerton Heath
+767,Keith Allen,Wiltshire,Tidworth North & West
+768,Kevin Asplin,Wiltshire,Amesbury East & Bulford
+769,Mike Sankey,Wiltshire,Calne North
+770,Robert Smith,Wiltshire,Westbury West
+771,David Buckley,Windsor and Maidenhead,"Datchet, Horton & Wraysbury"
 715,Adam Smith,West Northamptonshire,Hackleton & Roade
 716,Adrian Cartwright,West Northamptonshire,Headlands
 717,Adrian Little,West Northamptonshire,Towcester
@@ -691,44 +552,65 @@ id,name,council,ward
 754,Thomas Manning,West Northamptonshire,Talavera
 755,Trefor Hughes,West Northamptonshire,Nene Valley
 756,Vincent Clive,West Northamptonshire,Duston
-757,Andrew Baldwin,West Sussex,Holbrook
-758,Gary Markwell,West Sussex,Arundel & Courtwick
-759,Paul Linehan,West Sussex,Bramber Castle
-760,Trevor Bence,West Sussex,Fontwell
-761,Augusta Urquhart-Nicholls,Wiltshire,Calne Chilvester & Abberd
-762,Boaz Barry,Wiltshire,Westbury North
-763,Chris Brautigam,Wiltshire,Southwick
-764,Chris Vaughan,Wiltshire,Trowbridge Park
-765,Dave Lumsden,Wiltshire,Tidworth East & Ludgershall South
-766,Ed Rimmer,Wiltshire,Salisbury Bemerton Heath
-767,Keith Allen,Wiltshire,Tidworth North & West
-768,Kevin Asplin,Wiltshire,Amesbury East & Bulford
-769,Mike Sankey,Wiltshire,Calne North
-770,Robert Smith,Wiltshire,Westbury West
-771,David Buckley,Windsor and Maidenhead,"Datchet, Horton & Wraysbury"
-772,Anita Stanley,Wolverhampton,Bilston North
 773,Alan Amos,Worcester,Lower Wick & Pitmaston
+772,Anita Stanley,Wolverhampton,Bilston North
+801,Alice Jones,Wyre,Park
+802,David Higgs,Wyre,Marsh Mill
+803,James Crawford,Wyre,Marsh Mill
+804,Paul Ellison,Wyre,Marsh Mill
+246,Thomas Kerr,Glasgow City,Shettleston
+774,Alan Amos,Worcestershire,Bedwardine
+775,Anthony Upton,Worcestershire,St Barnabas
 776,Ashley Monk,Worcestershire,Redditch West
 777,Bill Hopkins,Worcestershire,St Chads
 778,Dave Aubrey,Worcestershire,Nunnery
 779,Dave Edmonds,Worcestershire,Redditch Central
+780,David Taylor,Worcestershire,Redditch East
 781,Gaynor Jean-Louis,Worcestershire,Bromsgrove South
 782,Ian Cresswell,Worcestershire,Stourport Mitton
 783,Jenny Shaw,Worcestershire,"Cookley, Wolverley & Wribbenhall"
+784,Jo Monk,Worcestershire,Redditch East
 785,Justin Bowen,Worcestershire,Tenbury
 786,Karl Perks,Worcestershire,Stourport Areley Kings & Riverside
 787,Mark Crosby,Worcestershire,St Georges
 788,Mark Dunkley,Worcestershire,Woodvale
 789,Matthew Jones,Worcestershire,St Johns
 790,Michele Hulme,Worcestershire,Evesham South
+791,Nik Price,Worcestershire,Bromsgrove West
 792,Owen Cleary,Worcestershire,Warndon & Elbury Park
 793,Peter Turner,Worcestershire,Beacon
 794,Richard Tudge,Worcestershire,Redditch Central
+795,Rob Wharton,Worcestershire,St Peters
 796,Roger Bennett,Worcestershire,Redditch South
 797,Sam Bastow,Worcestershire,Evesham North West
 798,Satinder Bell,Worcestershire,Harvington
+799,Stephen Foster,Worcestershire,Redditch West
 800,Sue Eacock,Worcestershire,Redditch South
-801,Alice Jones,Wyre,Park
-802,David Higgs,Wyre,Marsh Mill
-803,James Crawford,Wyre,Marsh Mill
-804,Paul Ellison,Wyre,Marsh Mill
+757,Andrew Baldwin,West Sussex,Holbrook
+692,Anne-Marie Sonko,Warwickshire,Earl Craven
+758,Gary Markwell,West Sussex,Arundel & Courtwick
+759,Paul Linehan,West Sussex,Bramber Castle
+693,Chris Morris,Warwickshire,Bedworth West
+760,Trevor Bence,West Sussex,Fontwell
+694,Dale Bridgewater,Warwickshire,Camp Hill
+695,Dan Glover,Warwickshire,New Bilton & Overslade
+696,Darren Cheshire,Warwickshire,Nuneaton East
+697,Edward Harris,Warwickshire,Baddesley & Dordon
+698,George Finch,Warwickshire,Bedworth Central
+699,James Crocker,Warwickshire,Arden
+700,Jennifer Warren,Warwickshire,Hartshill & Mancetter
+701,John Waine,Warwickshire,Bulkington & Whitestone
+702,Luke Cooper,Warwickshire,Studley
+703,Luke Shingler,Warwickshire,Galley Common
+704,Michael Bannister,Warwickshire,Nuneaton Abbey
+705,Neil Garland,Warwickshire,Bedworth North
+706,Nigel Golby,Warwickshire,Stockingford
+707,Rob Howard,Warwickshire,Attleborough
+708,Robert Aitkenhead,Warwickshire,Coleshill North & Water Orton
+709,Robert Gisbourne,Warwickshire,Atherstone
+710,Scott Cameron,Warwickshire,Coleshill South & Arley
+711,Stan Carvell,Warwickshire,Bedworth East
+712,Stephen Shaw,Warwickshire,Polesworth
+713,Stuart Green,Warwickshire,Kingsbury
+714,Wayne Briggs,Warwickshire,Arbury
+667,Sarah Whalley-Hoggins,Stratford-on-Avon,Brailes & Compton

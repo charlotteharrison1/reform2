@@ -84,6 +84,27 @@ def _normalize_name(value: str) -> str:
     return re.sub(r"\\s+", " ", value).strip()
 
 
+def find_ward_link(base_url: str, html: str, ward: Optional[str]) -> Optional[str]:
+    """Find a link on the page that matches the ward name."""
+
+    if not ward:
+        return None
+    target = _normalize_name(ward)
+    if not target:
+        return None
+
+    soup = BeautifulSoup(html, "html.parser")
+    for link in soup.find_all("a", href=True):
+        text = (link.get_text() or "").strip()
+        href = (link.get("href") or "").strip()
+        if not href:
+            continue
+        if target in _normalize_name(text):
+            return urljoin(base_url, href)
+
+    return None
+
+
 def find_councillor_links(base_url: str, html: str, name: str) -> list[str]:
     """Find links on a page that likely belong to a councillor."""
 
