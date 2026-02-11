@@ -1,4 +1,8 @@
-"""Discover 'your councillors' pages for each council and write a clean CSV."""
+"""Discover 'your councillors' pages for each council and write a clean CSV.
+
+Primary strategy: build the Moderngov member index URL from the council name
+and check if it exists.
+"""
 
 from __future__ import annotations
 
@@ -18,6 +22,8 @@ OUTPUT = os.getenv("COUNCILLOR_PAGES_CSV", "council_councillor_pages.csv")
 MAX_PAGES = int(os.getenv("COUNCILLOR_CRAWL_PAGES", "120"))
 MAX_DEPTH = int(os.getenv("COUNCILLOR_CRAWL_DEPTH", "4"))
 REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "0"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+USE_MODERNGOV = os.getenv("USE_MODERNGOV", "1") != "0"
 
 HEADERS = {
     "User-Agent": (
@@ -38,6 +44,10 @@ KEYWORDS = (
     "mgmemberindex",
     "mguserinfo",
 )
+
+def _debug(msg: str) -> None:
+    if LOG_LEVEL == "DEBUG":
+        print(msg)
 
 
 def is_internal(url: str, base_domain: str) -> bool:
@@ -86,6 +96,41 @@ def extract_candidate_links(base_url: str, html: str) -> list[str]:
     return links
 
 
+def _text_has_keyword(text: str) -> bool:
+    lowered = (text or "").lower()
+    return any(k in lowered for k in KEYWORDS)
+
+
+def _link_is_councillor_related(a) -> bool:
+    try:
+        href = (a.get("href") or "").strip()
+        link_text = (a.get_text() or "").strip()
+        if _text_has_keyword(link_text):
+            return True
+        if _text_has_keyword(href):
+            return True
+        parent_text = ""
+        parent = a.find_parent()
+        if parent is not None:
+            parent_text = (parent.get_text(" ", strip=True) or "")[:200]
+        if _text_has_keyword(parent_text):
+            return True
+    except Exception:
+        return False
+    return False
+
+
+def _slugify_council_name(name: str) -> str:
+    lowered = re.sub(r"[^\w\s-]", "", name.lower())
+    lowered = re.sub(r"[\s_]+", "", lowered)
+    return lowered
+
+
+def _build_moderngov_index(name: str) -> str:
+    slug = _slugify_council_name(name)
+    return f"https://{slug}.moderngov.co.uk/mgMemberIndex.aspx?bcr=1"
+
+
 def crawl_for_councillor_page(start_url: str) -> list[str]:
     parsed = urlparse(start_url)
     base_host = parsed.hostname or ""
@@ -106,6 +151,7 @@ def crawl_for_councillor_page(start_url: str) -> list[str]:
         if REQUEST_DELAY:
             time.sleep(REQUEST_DELAY)
         try:
+            _debug(f"Crawling: {url}")
             resp = requests.get(url, headers=HEADERS, timeout=20)
             resp.raise_for_status()
         except Exception:
@@ -113,7 +159,12 @@ def crawl_for_councillor_page(start_url: str) -> list[str]:
 
         content_type = (resp.headers.get("Content-Type") or "").lower()
         if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
-            continue
+            # If content-type is missing or generic, do a light sniff before parsing
+            if content_type and "text" not in content_type:
+                continue
+            sample = (resp.text or "")[:500].lower()
+            if "<html" not in sample and "<!doctype html" not in sample:
+                continue
         html = resp.text
 
         if looks_like_index_url(url) or page_matches_heading(html):
@@ -122,12 +173,13 @@ def crawl_for_councillor_page(start_url: str) -> list[str]:
 
         for link in extract_candidate_links(url, html):
             if is_internal(link, base_domain) and link not in seen:
-                queue.append((link, depth + 1))
+                if depth + 1 <= MAX_DEPTH:
+                    queue.append((link, depth + 1))
 
         if depth >= MAX_DEPTH:
             continue
 
-        # General crawl: follow a limited number of internal links per page
+        # Focused crawl: only follow links tied to "councillor" language
         try:
             soup = BeautifulSoup(html, "html.parser")
         except Exception:
@@ -136,6 +188,8 @@ def crawl_for_councillor_page(start_url: str) -> list[str]:
         for a in soup.find_all("a", href=True):
             href = (a.get("href") or "").strip()
             if not href:
+                continue
+            if not _link_is_councillor_related(a):
                 continue
             next_url = urljoin(url, href)
             if not is_internal(next_url, base_domain):
@@ -170,6 +224,18 @@ def main() -> None:
 
     results = []
     for council, url in rows:
+        pages = []
+        if USE_MODERNGOV:
+            candidate = _build_moderngov_index(council)
+            try:
+                if REQUEST_DELAY:
+                    time.sleep(REQUEST_DELAY)
+                resp = requests.get(candidate, headers=HEADERS, timeout=20)
+                if resp.ok:
+                    results.append((council, url, candidate))
+                    continue
+            except Exception:
+                pass
         pages = crawl_for_councillor_page(url)
         if pages:
             for p in pages:

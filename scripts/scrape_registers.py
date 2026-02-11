@@ -438,11 +438,11 @@ def _process_councillor(
                     )
                     continue
 
-                    candidate_links = find_councillor_links(
-                        register_url, response.text, name
-                    )[:5]
-                    if _REQUEST_DELAY:
-                        time.sleep(_REQUEST_DELAY)
+                candidate_links = find_councillor_links(
+                    register_url, response.text, name
+                )[:5]
+                if _REQUEST_DELAY:
+                    time.sleep(_REQUEST_DELAY)
                 for candidate_url in candidate_links:
                     try:
                         candidate_fetched = _fetch_and_extract(

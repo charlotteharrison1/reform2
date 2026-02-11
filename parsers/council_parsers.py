@@ -39,6 +39,8 @@ _DEFAULT_HEADERS = {
     )
 }
 
+_DEFAULT_TIMEOUT = 20
+
 
 def _looks_like_register_link(text: str, href: str) -> bool:
     """Return True when link text or URL suggests a register page."""
