@@ -85,6 +85,12 @@
         color: #2d2d2d;
         line-height: 1.4;
       }
+      mark.hl {
+        background: #ffe08a;
+        color: inherit;
+        padding: 0 0.15em;
+        border-radius: 0.2em;
+      }
       .empty {
         text-align: center;
         padding: 2rem 1rem;
@@ -111,16 +117,16 @@
     <section class="results">
       {% if query and results %}
         {% for row in results %}
-          <div class="card">
-            <strong>{{ row.name }}</strong>
+            <div class="card">
+            <strong>{{ highlight(row.name, query) | safe }}</strong>
             <div class="meta">
-              <span>{{ row.council }}</span>
+              <span>{{ highlight(row.council, query) | safe }}</span>
               {% if row.ward %}
-                <span>Ward: {{ row.ward }}</span>
+                <span>Ward: {{ highlight(row.ward, query) | safe }}</span>
               {% endif %}
               <span>Fetched: {{ row.fetched_at }}</span>
             </div>
-            <div class="snippet">{{ row.snippet }}</div>
+            <div class="snippet">{{ make_snippet(row.snippet, query) | safe }}</div>
             <div class="meta">
               <a href="{{ row.register_url }}" target="_blank" rel="noreferrer">Open register</a>
               <span>{{ row.content_type }}</span>

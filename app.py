@@ -3,15 +3,64 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 from flask import Flask, render_template, request
+from markupsafe import Markup, escape
 
 from config import get_db_connection
 
 
 app = Flask(__name__)
 
+
+def _highlight(text: str, term: str) -> Markup:
+    if not text or not term:
+        return Markup(escape(text or ""))
+    pattern = re.compile(re.escape(term), re.IGNORECASE)
+    safe_text = escape(text)
+    highlighted = pattern.sub(
+        lambda m: f"<mark class=\"hl\">{m.group(0)}</mark>", safe_text
+    )
+    return Markup(highlighted)
+
+
+def _make_snippet(text: str, term: str, *, window_words: int = 24) -> Markup:
+    if not text:
+        return Markup("")
+    cleaned = re.sub(r"\s+", " ", text).strip()
+    if not term:
+        return _highlight(cleaned[:320], "")
+
+    words = cleaned.split()
+    if not words:
+        return Markup("")
+
+    lowered = [w.lower() for w in words]
+    term_lower = term.lower()
+    match_index = None
+    for i, w in enumerate(lowered):
+        if term_lower in w:
+            match_index = i
+            break
+
+    if match_index is None:
+        snippet = " ".join(words[:64])
+        return _highlight(snippet, term)
+
+    start = max(0, match_index - window_words)
+    end = min(len(words), match_index + window_words + 1)
+    snippet_words = words[start:end]
+    snippet = " ".join(snippet_words)
+    if start > 0:
+        snippet = "… " + snippet
+    if end < len(words):
+        snippet = snippet + " …"
+
+    # Add light formatting for readability: break after sentence endings.
+    snippet = re.sub(r"([.!?])\\s+", r\"\\1<br>\", snippet)
+    return _highlight(snippet, term)
 
 def _query_registers(term: str) -> list[dict[str, Any]]:
     term = term.strip()
@@ -28,7 +77,7 @@ def _query_registers(term: str) -> list[dict[str, Any]]:
             r.register_url,
             r.fetched_at,
             r.content_type,
-            LEFT(r.extracted_text, 800) AS snippet
+            r.extracted_text
         FROM councillor_registers r
         JOIN councillors c ON c.id = r.councillor_id
         WHERE
@@ -66,7 +115,13 @@ def _query_registers(term: str) -> list[dict[str, Any]]:
 def index() -> str:
     query = request.args.get("q", "").strip()
     results = _query_registers(query) if query else []
-    return render_template("index.html", query=query, results=results)
+    return render_template(
+        "index.html",
+        query=query,
+        results=results,
+        highlight=_highlight,
+        make_snippet=_make_snippet,
+    )
 
 
 if __name__ == "__main__":
