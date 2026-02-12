@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import os
 import re
 from typing import Any
@@ -59,7 +60,7 @@ def _make_snippet(text: str, term: str, *, window_words: int = 24) -> Markup:
         snippet = snippet + " …"
 
     # Add light formatting for readability: break after sentence endings.
-    snippet = re.sub(r"([.!?])\\s+", r\"\\1<br>\", snippet)
+    snippet = re.sub(r"([.!?])\\s+", r"\\1<br>", snippet)
     return _highlight(snippet, term)
 
 def _query_registers(term: str) -> list[dict[str, Any]]:
@@ -111,6 +112,26 @@ def _query_registers(term: str) -> list[dict[str, Any]]:
     return results
 
 
+def _load_shared_interests() -> list[dict[str, str]]:
+    path = os.getenv("SHARED_INTERESTS_CSV", "shared_interests.csv")
+    if not os.path.exists(path):
+        return []
+    rows: list[dict[str, str]] = []
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "example_interest": row.get("example_interest", "") or "",
+                    "register_count": row.get("register_count", "") or "",
+                    "example_councils": row.get("example_councils", "") or "",
+                    "example_councillors": row.get("example_councillors", "") or "",
+                    "example_register_urls": row.get("example_register_urls", "") or "",
+                }
+            )
+    return rows
+
+
 @app.route("/", methods=["GET"])
 def index() -> str:
     query = request.args.get("q", "").strip()
@@ -122,6 +143,12 @@ def index() -> str:
         highlight=_highlight,
         make_snippet=_make_snippet,
     )
+
+
+@app.route("/shared-interests", methods=["GET"])
+def shared_interests() -> str:
+    rows = _load_shared_interests()
+    return render_template("shared_interests.html", rows=rows)
 
 
 if __name__ == "__main__":

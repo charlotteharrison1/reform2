@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shared Interests</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f3ec;
+        --panel: #ffffff;
+        --ink: #1b1b1b;
+        --muted: #5b5b5b;
+        --accent: #2f6b57;
+        --border: #e0d8cc;
+      }
+      body {
+        margin: 0;
+        font-family: "Iowan Old Style", "Georgia", serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      header {
+        padding: 2.5rem 1.5rem 1rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 2rem;
+        letter-spacing: 0.02em;
+      }
+      .meta {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem 1.5rem;
+        color: var(--muted);
+      }
+      .table-wrap {
+        max-width: 1100px;
+        margin: 0 auto 3rem;
+        padding: 0 1.5rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.75rem 0.85rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-size: 0.95rem;
+      }
+      th {
+        background: #efe7db;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #3d3d3d;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Shared Interests</h1>
+      <p>Fuzzy-matched interests appearing across multiple registers.</p>
+    </header>
+    <div class="meta">
+      <a href="/">Back to search</a>
+    </div>
+
+    <section class="table-wrap">
+      {% if rows %}
+        <table>
+          <thead>
+            <tr>
+              <th>Interest Snippet</th>
+              <th>Registers</th>
+              <th>Example Councils</th>
+              <th>Example Councillors</th>
+              <th>Example Register URLs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>{{ row.example_interest }}</td>
+                <td>{{ row.register_count }}</td>
+                <td>{{ row.example_councils }}</td>
+                <td>{{ row.example_councillors }}</td>
+                <td>{{ row.example_register_urls }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">No shared-interest data found. Run the analytics script first.</div>
+      {% endif %}
+    </section>
+  </body>
+</html>
