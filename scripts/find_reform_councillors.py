@@ -42,9 +42,9 @@ def _slugify_council_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", name.lower())
 
 
-def _build_index_url(council: str) -> str:
+def _build_index_url(council: str, *, use_democracy: bool) -> str:
     slug = _slugify_council_name(council)
-    if USE_DEMOCRACY:
+    if use_democracy:
         return f"https://democracy.{slug}.gov.uk/mgMemberIndex.aspx?bcr=1"
     return f"https://{slug}.moderngov.co.uk/mgMemberIndex.aspx?bcr=1"
 
@@ -66,7 +66,8 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str, str]]:
 
     for li in soup.find_all("li"):
         text = _normalize_whitespace(li.get_text(" ", strip=True))
-        if "reform uk" not in text.lower():
+        lowered = text.lower()
+        if "reform" not in lowered:
             continue
         a = li.find("a", href=True)
         if not a:
@@ -83,7 +84,7 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str, str]]:
             if not p_text:
                 continue
             # Skip the party line, keep the ward line.
-            if "reform uk" in p_text.lower():
+            if "reform" in p_text.lower():
                 continue
             ward = p_text
             break
@@ -101,8 +102,7 @@ def main() -> None:
             council = (row.get("council") or "").strip()
             council_url = (row.get("council_url") or "").strip()
             if council:
-                index_url = _build_index_url(council)
-                rows.append((council, council_url, index_url))
+                rows.append((council, council_url))
 
     existing_rows: list[tuple[str, str, str, str]] = []
     existing_set: set[tuple[str, str, str, str]] = set()
@@ -124,17 +124,36 @@ def main() -> None:
     failures: list[tuple[str, str, str]] = []
     successful_councils: set[str] = set()
     total = len(rows)
-    for idx, (council, council_url, index_url) in enumerate(rows, start=1):
+    for idx, (council, council_url) in enumerate(rows, start=1):
         if council.lower() in existing_councils:
             print(f"[{idx}/{total}] Skipping {council} (already logged)")
             continue
+        matches = []
+        primary_url = _build_index_url(council, use_democracy=USE_DEMOCRACY)
+        fallback_url = _build_index_url(council, use_democracy=False)
         try:
-            print(f"[{idx}/{total}] Fetching {council}: {index_url}")
-            matches = extract_reform_councillors(index_url)
+            print(f"[{idx}/{total}] Fetching {council}: {primary_url}")
+            matches = extract_reform_councillors(primary_url)
         except Exception as exc:
-            print(f"[{idx}/{total}] Failed {council}: {exc}")
-            failures.append((council, index_url, str(exc)))
-            continue
+            primary_err = str(exc)
+            if USE_DEMOCRACY:
+                try:
+                    print(f"[{idx}/{total}] Fallback {council}: {fallback_url}")
+                    matches = extract_reform_councillors(fallback_url)
+                except Exception as fallback_exc:
+                    print(f"[{idx}/{total}] Failed {council}: {fallback_exc}")
+                    failures.append(
+                        (
+                            council,
+                            f"{primary_url} | {fallback_url}",
+                            f"{primary_err} | {fallback_exc}",
+                        )
+                    )
+                    continue
+            else:
+                print(f"[{idx}/{total}] Failed {council}: {exc}")
+                failures.append((council, primary_url, primary_err))
+                continue
         successful_councils.add(council)
         print(f"[{idx}/{total}] Found {len(matches)} Reform UK councillor(s) for {council}")
         for name, ward, councillor_url in matches:

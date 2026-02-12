@@ -1,8 +1,8 @@
-welcome to my vibecoding adventure in scraping the register of interest of reform councillors. check back here later for instructions on how to use.
+Welcome! This repo tracks Reform UK councillors and their profile pages, and (optionally) scrapes registers of interests later.
 
 # reform_register_scraper
 
-Minimal tooling to load councillor seed data, crawl council sites for register pages, and store register documents.
+Minimal tooling to load councillor seed data, discover Reform UK councillor profile pages, and optionally scrape registers.
 
 ## Setup
 
@@ -40,10 +40,16 @@ Load councillors from the CSV file (`reform-councillors.csv` in the repo root). 
 python scripts/load_csv.py
 ```
 
-Scrape registers and store results (the scraper finds the council homepage via web search, crawls for register pages/PDFs, then matches councillor names in those pages):
+Build/update the Reform councillor profile page database (democracy.gov path). This skips councils already logged and updates `missing_councillors.csv` and `missing-councils.csv`:
 
 ```bash
-python scripts/scrape_registers.py
+USE_DEMOCRACY=1 python scripts/find_reform_councillors.py
+```
+
+Scrape registers and store results (optional, for later):
+
+```bash
+USE_HOMEPAGE_CRAWL=0 USE_FALLBACK_SEARCH=0 python -m scripts.scrape_registers
 ```
 
 ## Search UI
