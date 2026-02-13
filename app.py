@@ -132,6 +132,26 @@ def _load_shared_interests() -> list[dict[str, str]]:
     return rows
 
 
+def _load_register_pdfs() -> list[dict[str, str]]:
+    path = os.getenv("REGISTER_PDF_CSV", "reform_register_pdfs.csv")
+    if not os.path.exists(path):
+        return []
+    rows: list[dict[str, str]] = []
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "council": row.get("council", "") or "",
+                    "councillor": row.get("councillor", "") or "",
+                    "ward": row.get("ward", "") or "",
+                    "register_url": row.get("register_url", "") or "",
+                    "content_type": row.get("content_type", "") or "",
+                }
+            )
+    return rows
+
+
 @app.route("/", methods=["GET"])
 def index() -> str:
     query = request.args.get("q", "").strip()
@@ -149,6 +169,12 @@ def index() -> str:
 def shared_interests() -> str:
     rows = _load_shared_interests()
     return render_template("shared_interests.html", rows=rows)
+
+
+@app.route("/pdfs", methods=["GET"])
+def pdfs() -> str:
+    rows = _load_register_pdfs()
+    return render_template("pdfs.html", rows=rows)
 
 
 if __name__ == "__main__":
