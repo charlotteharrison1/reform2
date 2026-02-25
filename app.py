@@ -133,23 +133,59 @@ def _load_shared_interests() -> list[dict[str, str]]:
 
 
 def _load_register_pdfs() -> list[dict[str, str]]:
-    path = os.getenv("REGISTER_PDF_CSV", "reform_register_pdfs.csv")
-    if not os.path.exists(path):
-        return []
+    pdf_path = os.getenv("REGISTER_PDF_CSV", "reform_register_pdfs.csv")
+    links_path = os.getenv("REGISTER_LINKS_CSV", "reform_register_links.csv")
     rows: list[dict[str, str]] = []
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(
-                {
-                    "council": row.get("council", "") or "",
-                    "councillor": row.get("councillor", "") or "",
-                    "ward": row.get("ward", "") or "",
-                    "register_url": row.get("register_url", "") or "",
-                    "content_type": row.get("content_type", "") or "",
-                }
-            )
-    return rows
+
+    def add_row(data: dict[str, str]) -> None:
+        register_url = (data.get("register_url") or "").strip()
+        if not register_url:
+            return
+        rows.append(
+            {
+                "council": (data.get("council") or "").strip(),
+                "councillor": (data.get("councillor") or "").strip(),
+                "ward": (data.get("ward") or "").strip(),
+                "register_url": register_url,
+                "content_type": (data.get("content_type") or "").strip(),
+                "source": (data.get("source") or "").strip(),
+            }
+        )
+
+    if os.path.exists(pdf_path):
+        with open(pdf_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                row = dict(row)
+                row["source"] = "register_pdfs"
+                add_row(row)
+
+    if os.path.exists(links_path):
+        with open(links_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                register_url = (row.get("register_url") or "").strip()
+                if not register_url or ".pdf" not in register_url.lower():
+                    continue
+                row = dict(row)
+                row["source"] = "register_links"
+                add_row(row)
+
+    # Deduplicate by (council, councillor, register_url)
+    seen: set[tuple[str, str, str]] = set()
+    unique_rows: list[dict[str, str]] = []
+    for row in rows:
+        key = (
+            row["council"].lower(),
+            row["councillor"].lower(),
+            row["register_url"].lower(),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(row)
+
+    return unique_rows
 
 
 @app.route("/", methods=["GET"])
@@ -173,8 +209,19 @@ def shared_interests() -> str:
 
 @app.route("/pdfs", methods=["GET"])
 def pdfs() -> str:
+    query = request.args.get("q", "").strip()
     rows = _load_register_pdfs()
-    return render_template("pdfs.html", rows=rows)
+    if query:
+        q = query.lower()
+        rows = [
+            row
+            for row in rows
+            if q in row["council"].lower()
+            or q in row["councillor"].lower()
+            or q in row["ward"].lower()
+            or q in row["register_url"].lower()
+        ]
+    return render_template("pdfs.html", rows=rows, total=len(rows), query=query)
 
 
 if __name__ == "__main__":

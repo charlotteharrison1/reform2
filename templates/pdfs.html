@@ -81,14 +81,27 @@
   <body>
     <header>
       <h1>Register PDFs</h1>
-      <p>Registers that need manual PDF review.</p>
+      <p>All collected PDFs (from register scraping and direct link matches).</p>
     </header>
     <div class="meta">
       <a href="/">Back to search</a>
     </div>
 
     <section class="table-wrap">
+      <form method="get" action="/pdfs" style="margin-bottom: 1rem;">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search council, councillor, ward, or URL"
+          value="{{ query }}"
+          style="width: 100%; max-width: 520px; padding: 0.65rem 0.85rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;"
+        />
+      </form>
+    </section>
+
+    <section class="table-wrap">
       {% if rows %}
+        <p class="meta">Total PDFs: {{ total }}</p>
         <table>
           <thead>
             <tr>
@@ -97,6 +110,7 @@
               <th>Ward</th>
               <th>Register PDF</th>
               <th>Content Type</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>
@@ -111,6 +125,7 @@
                   {% endif %}
                 </td>
                 <td>{{ row.content_type }}</td>
+                <td>{{ row.source }}</td>
               </tr>
             {% endfor %}
           </tbody>

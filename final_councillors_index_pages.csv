@@ -7,16 +7,11 @@ Barnet,https://barnet.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Bassetlaw,https://bassetlaw.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Blaby,https://blaby.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Blackpool,https://blackpool.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-Bolsover,https://bolsover.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Boston,https://boston.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Breckland,https://breckland.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-Bridgend,https://bridgend.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Broxbourne,https://broxbourne.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Buckinghamshire,https://buckinghamshire.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Calderdale,https://calderdale.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-Cambridgeshire,https://cambridgeshire.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-Cheshire East,https://cheshireeast.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-Cheshire West and Chester,https://cheshirewestandchester.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Chorley,https://chorley.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Cornwall,https://cornwall.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Dartford,https://dartford.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
@@ -24,8 +19,6 @@ Derbyshire,https://derbyshire.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Devon,https://devon.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Doncaster,https://doncaster.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Durham,https://durham.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-East Hertfordshire,https://easthertfordshire.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
-East Lindsey,https://eastlindsey.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 East Riding of Yorkshire,https://eastridingofyorkshire.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Elmbridge,https://elmbridge.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Epping Forest,https://eppingforest.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
@@ -100,7 +93,6 @@ Cambridgeshire, https://cambridgeshire.cmis.uk.com/ccc_live/Councillors.aspx
 Cheshire East,https://moderngov.cheshireeast.gov.uk/ecminutes/mgMemberIndex.aspx?bcr=1
 Cheshire West and Chester,https://cmttpublic.cheshirewestandchester.gov.uk/mgMemberIndex.aspx?bcr=1
 East Hertfordshire,https://democracy.eastherts.gov.uk/mgMemberIndex.aspx?bcr=1
-East Lindsey,https://democracy.e-lindsey.gov.uk/mgMemberIndex.aspx?bcr=1&
 East Riding of Yorkshire, https://www.eastriding.gov.uk/council/councillors-and-members-of-parliament/ward-councillors/
 Elmbridge, https://mygov.elmbridge.gov.uk/mgMemberIndex.aspx
 Essex,https://www.uttlesford.gov.uk/article/5144/Essex-County-Councillors
@@ -139,3 +131,18 @@ West Northamptonshire,https://westnorthants.moderngov.co.uk/mgMemberindex.aspx?b
 Wiltshire,https://cms.wiltshire.gov.uk/mgMemberIndex.aspx?bcr=1
 Windsor and Maidenhead,https://rbwm.moderngov.co.uk/mgMemberIndex.aspx?bcr=1
 Worcester, https://www.worcester.gov.uk/councillors-democracy/your-city-councillors
+Bolsover,https://committees.bolsover.gov.uk/mgMemberIndex.aspx?bcr=1
+Bridgend,https://democratic.bridgend.gov.uk/mgMemberIndex.aspx?FN=WARD&LLL=0
+Cambridgeshire,https://cambridgeshire.cmis.uk.com/ccc_live/Councillors.aspx
+Cheshire East,https://moderngov.cheshireeast.gov.uk/ecminutes/mgMemberIndex.aspx?bcr=1
+Cheshire West and Chester,https://cmttpublic.cheshirewestandchester.gov.uk/mgMemberIndex.aspx?bcr=1
+East Hertfordshire,https://democracy.eastherts.gov.uk/mgMemberIndex.aspx?bcr=1
+East Lindsey,https://democracy.e-lindsey.gov.uk/mgMemberIndex.aspx?bcr=1&
+East Riding of Yorkshire,https://www.eastriding.gov.uk/council/councillors-and-members-of-parliament/find-a-councillor/
+Elmbridge,https://mygov.elmbridge.gov.uk/mgMemberIndex.aspx
+Essex,https://cmis.essex.gov.uk/essexcmis5/Councillors.aspx
+Exeter,https://committees.exeter.gov.uk/mgMemberIndex.aspx?bcr=1
+Falkirk, https://council.falkirk.gov.uk/Councillors
+Folkestone and Hythe,https://folkestone-hythe.moderngov.co.uk/mgFindMember.aspx
+Forest of Dean, https://meetings.fdean.gov.uk/mgMemberIndex.aspx?bcr=1
+

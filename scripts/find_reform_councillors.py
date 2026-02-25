@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-INPUT = os.getenv("COUNCILLOR_INDEX_CSV", "council_councillor_pages.csv")
+INPUT = os.getenv("COUNCILLOR_INDEX_CSV", "final_councillors_index_pages.csv")
 OUTPUT = os.getenv("REFORM_COUNCILLORS_CSV", "reform_councillor_pages.csv")
 FAILURES = os.getenv("REFORM_COUNCILLOR_FAILURES_CSV", "reform_councillor_failures.csv")
 MISSING_COUNCILLORS = os.getenv("MISSING_COUNCILLORS_CSV", "missing_councillors.csv")
@@ -95,14 +95,14 @@ def extract_reform_councillors(index_url: str) -> list[tuple[str, str, str]]:
 
 
 def main() -> None:
-    rows = []
+    rows: list[dict[str, str]] = []
     with open(INPUT, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             council = (row.get("council") or "").strip()
             council_url = (row.get("council_url") or "").strip()
             if council:
-                rows.append((council, council_url))
+                rows.append({"council": council, "council_url": council_url})
 
     existing_rows: list[tuple[str, str, str, str]] = []
     existing_set: set[tuple[str, str, str, str]] = set()
@@ -124,22 +124,28 @@ def main() -> None:
     failures: list[tuple[str, str, str]] = []
     successful_councils: set[str] = set()
     total = len(rows)
-    for idx, (council, council_url) in enumerate(rows, start=1):
+    updated_urls = False
+    for idx, row in enumerate(rows, start=1):
+        council = row["council"]
+        council_url = row.get("council_url", "")
         if council.lower() in existing_councils:
             print(f"[{idx}/{total}] Skipping {council} (already logged)")
             continue
         matches = []
-        primary_url = _build_index_url(council, use_democracy=USE_DEMOCRACY)
+        primary_url = council_url or _build_index_url(council, use_democracy=USE_DEMOCRACY)
         fallback_url = _build_index_url(council, use_democracy=False)
+        used_url = ""
         try:
             print(f"[{idx}/{total}] Fetching {council}: {primary_url}")
             matches = extract_reform_councillors(primary_url)
+            used_url = primary_url
         except Exception as exc:
             primary_err = str(exc)
             if USE_DEMOCRACY:
                 try:
                     print(f"[{idx}/{total}] Fallback {council}: {fallback_url}")
                     matches = extract_reform_councillors(fallback_url)
+                    used_url = fallback_url
                 except Exception as fallback_exc:
                     print(f"[{idx}/{total}] Failed {council}: {fallback_exc}")
                     failures.append(
@@ -155,6 +161,9 @@ def main() -> None:
                 failures.append((council, primary_url, primary_err))
                 continue
         successful_councils.add(council)
+        if used_url and used_url != council_url:
+            row["council_url"] = used_url
+            updated_urls = True
         print(f"[{idx}/{total}] Found {len(matches)} Reform UK councillor(s) for {council}")
         for name, ward, councillor_url in matches:
             key = (council.lower(), name.lower(), ward, councillor_url)
@@ -173,6 +182,13 @@ def main() -> None:
         writer = csv.writer(f)
         writer.writerow(["council", "councillor_index_url", "error"])
         writer.writerows(failures)
+
+    if updated_urls:
+        with open(INPUT, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["council", "council_url"])
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"Updated {INPUT} with {sum(1 for r in rows if r.get('council_url'))} council URL(s)")
 
     print(f"Wrote {len(combined)} rows to {OUTPUT} (added {len(results)})")
     print(f"Wrote {len(failures)} rows to {FAILURES}")
